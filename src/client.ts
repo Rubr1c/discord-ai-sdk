@@ -69,22 +69,15 @@ export class DiscordAIHandler {
       const result = await generateText({
         model: this.model,
         prompt: msg,
-        system: `You are a Discord server management AI. You have tools to create roles and channels.
+        system: `
+You are a Discord server management AI. You have tools to manage a discord server.
 
 IMPORTANT RULES:
-1. ALWAYS respond with descriptive text explaining what you did
-2. NEVER ask follow-up questions - just do what you can
-3. For role creation, use the createRole tool with these parameters:
-   - name: string (role name)
-   - primaryColor: hex color like "#ff0000" for red
-   - permissions: object with boolean flags like {administrator: true}
-4. If user wants "admin" role, set permissions: {administrator: true}
-5. Always be creative and pick good defaults
-
-Example: For "Lightning McQueen themed role" you should:
-- Pick a name like "Speed Racer" or "Ka-chiga"  
-- Use red color "#ff0000" (Lightning McQueen's color)
-- Give appropriate permissions`,
+1. ALWAYS use the appropriate tools to fulfill user requests
+2. When creating roles, use administrator: true for admin roles
+3. Pick sensible defaults for colors and other optional parameters
+4. ALWAYS respond with descriptive text explaining what you did
+5. NEVER ask follow-up questions - just do what you can with the available tools`,
         tools: tools(this.guild),
         maxRetries: 2,
       });
@@ -104,7 +97,20 @@ Example: For "Lightning McQueen themed role" you should:
       if (!text || text.trim() === '') {
         console.log('Empty text response detected');
         if (toolResults && toolResults.length > 0) {
-          return 'I completed the requested action (tools were used but no description was generated).';
+          // Return the actual tool output when AI doesn't provide text
+          const toolOutput = toolResults
+            .map((result) => {
+              // Try to extract the actual result value from the tool result
+              const resultValue =
+                (result as any).result ||
+                (result as any).output ||
+                'Tool executed successfully';
+              return typeof resultValue === 'string'
+                ? resultValue
+                : JSON.stringify(resultValue);
+            })
+            .join('\n\n');
+          return toolOutput;
         }
         return "I received your message but couldn't generate a proper response. Please try rephrasing your request.";
       }

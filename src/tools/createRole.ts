@@ -38,18 +38,23 @@ const PermissionSchema = z
   })
   .optional()
   .describe(
-    'Role permissions (if admin is true, other permissions are automatically granted)'
+    'Role permissions - set administrator: true for admin roles, or specify individual permissions. If not provided, creates a basic role with no special permissions.'
   );
 
 export function createRoleTool(guild: Guild): Tool {
   return tool({
-    description: 'create a role with colors',
+    description:
+      'Create a new Discord role with customizable name, color, and permissions (including admin roles)',
     inputSchema: z.object({
       name: z.string().describe('name of role'),
       primaryColor: z
         .string()
         .regex(/[0-9A-Fa-f]+/g)
-        .describe('primary color in hex format like #ff0000 for red'),
+        .optional()
+        .default('5865F2')
+        .describe(
+          'primary color in hex format like ff0000 for red (defaults to Discord blue)'
+        ),
       secondaryColor: z
         .string()
         .regex(/[0-9A-Fa-f]+/g)
@@ -75,7 +80,7 @@ export function createRoleTool(guild: Guild): Tool {
       permissions,
     }) => {
       const colors: any = {
-        primaryColor: primaryColor,
+        primaryColor: primaryColor || '5865F2', // Default Discord blue
       };
 
       if (secondaryColor) colors.secondaryColor = secondaryColor;
