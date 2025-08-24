@@ -61,7 +61,7 @@ export class DiscordAIHandler {
   private async handle(msg: string): Promise<string> {
     if (!this.guild) throw new Error('No Guild');
 
-    console.log('🔍 Processing message:', msg);
+    console.log('Processing message:', msg);
 
     try {
       console.log('Available tools:', Object.keys(tools(this.guild)));
@@ -89,7 +89,7 @@ IMPORTANT RULES:
 
       if (toolResults && toolResults.length > 0) {
         console.log(
-          '🛠️ Tools used:',
+          'Tools used:',
           toolResults.map((r) => r.toolName)
         );
       }
