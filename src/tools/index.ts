@@ -4,6 +4,7 @@ import { createRoleTool } from './createRole';
 import { getCategoriesTools } from './getCategories';
 import { createCategoriesTools } from './createCategory';
 import { getRolesTools } from './getRoles';
+import { getChannelsTools } from './getChannels';
 
 export function tools(guild: Guild) {
   return {
@@ -12,5 +13,6 @@ export function tools(guild: Guild) {
     createCategories: createCategoriesTools(guild),
     getCategories: getCategoriesTools(guild),
     getRoles: getRolesTools(guild),
+    getChannels: getChannelsTools(guild),
   };
 }
