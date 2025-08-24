@@ -50,7 +50,7 @@ export function createRoleTool(guild: Guild): Tool {
       primaryColor: z
         .string()
         .regex(/[0-9A-Fa-f]+/g)
-        .optional()
+        .nullable()
         .default('5865F2')
         .describe(
           'primary color in hex format like ff0000 for red (defaults to Discord blue)'
@@ -58,12 +58,12 @@ export function createRoleTool(guild: Guild): Tool {
       secondaryColor: z
         .string()
         .regex(/[0-9A-Fa-f]+/g)
-        .optional()
+        .nullable()
         .describe('secondary color in hex format (optional)'),
       tertiaryColor: z
         .string()
         .regex(/[0-9A-Fa-f]+/g)
-        .optional()
+        .nullable()
         .describe('tertiary color in hex format (optional)'),
       mentionable: z
         .boolean()

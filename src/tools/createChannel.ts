@@ -16,7 +16,7 @@ export function createChannelTool(guild: Guild): Tool {
         ),
       category: z
         .string()
-        .optional()
+        .nullable()
         .describe(
           'Category ID where the channel should be created. Use the ID from getCategories tool output.'
         ),
@@ -32,7 +32,7 @@ export function createChannelTool(guild: Guild): Tool {
       const channel = await guild.channels.create({
         name: cleanName,
         type: ChannelType.GuildText,
-        parent: category || null,
+        parent: category,
       });
 
       return `Created channel: ${channel.name}`;
