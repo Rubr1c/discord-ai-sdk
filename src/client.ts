@@ -61,14 +61,59 @@ export class DiscordAIHandler {
   private async handle(msg: string): Promise<string> {
     if (!this.guild) throw new Error('No Guild');
 
-    const { text } = await generateText({
-      model: this.model,
-      prompt: msg,
-      system:
-        'You are an ai helper on discord. make sure to always respond with something. dont ask a follow up just do what u can and if you cant explain that',
-      tools: tools(this.guild),
-    });
+    console.log('🔍 Processing message:', msg);
 
-    return text;
+    try {
+      console.log('Available tools:', Object.keys(tools(this.guild)));
+
+      const result = await generateText({
+        model: this.model,
+        prompt: msg,
+        system: `You are a Discord server management AI. You have tools to create roles and channels.
+
+IMPORTANT RULES:
+1. ALWAYS respond with descriptive text explaining what you did
+2. NEVER ask follow-up questions - just do what you can
+3. For role creation, use the createRole tool with these parameters:
+   - name: string (role name)
+   - primaryColor: hex color like "#ff0000" for red
+   - permissions: object with boolean flags like {administrator: true}
+4. If user wants "admin" role, set permissions: {administrator: true}
+5. Always be creative and pick good defaults
+
+Example: For "Lightning McQueen themed role" you should:
+- Pick a name like "Speed Racer" or "Ka-chiga"  
+- Use red color "#ff0000" (Lightning McQueen's color)
+- Give appropriate permissions`,
+        tools: tools(this.guild),
+        maxRetries: 2,
+      });
+
+      const { text, toolResults } = result;
+
+      console.log('AI Response text:', JSON.stringify(text));
+      console.log('Tool results:', toolResults?.length || 0, 'tools used');
+
+      if (toolResults && toolResults.length > 0) {
+        console.log(
+          '🛠️ Tools used:',
+          toolResults.map((r) => r.toolName)
+        );
+      }
+
+      if (!text || text.trim() === '') {
+        console.log('Empty text response detected');
+        if (toolResults && toolResults.length > 0) {
+          return 'I completed the requested action (tools were used but no description was generated).';
+        }
+        return "I received your message but couldn't generate a proper response. Please try rephrasing your request.";
+      }
+
+      console.log('Returning text response');
+      return text;
+    } catch (error) {
+      console.error('AI generation error:', error);
+      return 'Sorry, I encountered an error while processing your request. Please try again.';
+    }
   }
 }

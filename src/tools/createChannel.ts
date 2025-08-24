@@ -10,19 +10,6 @@ export function createChannelTool(guild: Guild): Tool {
         .string()
         .min(1, 'Channel name cannot be empty')
         .max(100, 'Channel name too long')
-        .regex(
-          /^[a-z0-9\-_]+$/,
-          'Channel name must only contain lowercase letters, numbers, dashes, and underscores'
-        )
-        .refine(
-          (name) => !name.includes(' '),
-          'Channel name cannot contain spaces - use dashes instead'
-        )
-        .refine(
-          (name) => !name.startsWith('-') && !name.endsWith('-'),
-          'Channel name cannot start or end with dashes'
-        )
-        .transform((name) => name.toLowerCase().replace(/\s+/g, '-'))
         .describe(
           'Channel name (lowercase, no spaces, use dashes between words)'
         ),
@@ -30,8 +17,15 @@ export function createChannelTool(guild: Guild): Tool {
       //catagory: z.string().optional().describe('channel category'),
     }),
     execute: async ({ channelName }) => {
+      // Clean and format the channel name
+      const cleanName = channelName
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-_]/g, '')
+        .replace(/^-+|-+$/g, '');
+
       const channel = await guild.channels.create({
-        name: channelName,
+        name: cleanName,
         type: ChannelType.GuildText,
       });
 
