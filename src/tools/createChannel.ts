@@ -4,7 +4,8 @@ import z from 'zod';
 
 export function createChannelTool(guild: Guild): Tool {
   return tool({
-    description: 'create a discord channel',
+    description:
+      'Create a Discord text channel, optionally in a specific category. Use getCategories first if you need to find a category by name.',
     inputSchema: z.object({
       channelName: z
         .string()
@@ -13,10 +14,14 @@ export function createChannelTool(guild: Guild): Tool {
         .describe(
           'Channel name (lowercase, no spaces, use dashes between words)'
         ),
-      //TODO:
-      //catagory: z.string().optional().describe('channel category'),
+      category: z
+        .string()
+        .optional()
+        .describe(
+          'Category ID where the channel should be created. Use the ID from getCategories tool output.'
+        ),
     }),
-    execute: async ({ channelName }) => {
+    execute: async ({ channelName, category }) => {
       // Clean and format the channel name
       const cleanName = channelName
         .toLowerCase()
@@ -27,6 +32,7 @@ export function createChannelTool(guild: Guild): Tool {
       const channel = await guild.channels.create({
         name: cleanName,
         type: ChannelType.GuildText,
+        parent: category || null,
       });
 
       return `Created channel: ${channel.name}`;

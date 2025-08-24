@@ -7,23 +7,37 @@ import {
   type Interaction,
 } from 'discord.js';
 import type { HandlerOptions } from './types';
-import { generateText, type LanguageModel } from 'ai';
+import { generateText, stepCountIs, type LanguageModel } from 'ai';
 import { tools } from './tools';
+
+export type HandlerProps = {
+  client: Client;
+  opts: HandlerOptions;
+  model: LanguageModel;
+  system?: string;
+};
 
 export class DiscordAIHandler {
   private guild: Guild | null = null;
   private model: LanguageModel;
+  private systemPrompt: string = `
+   You are a Discord server management AI (discord bot). You have tools to manage a discord server.
+ 
+   IMPORTANT RULES:
+   1. ALWAYS use the appropriate tools to fulfill user requests
+   2. Use MULTIPLE tools in sequence when needed (e.g., getCategories then createChannel)
+   3. When creating channels in categories, first use getCategories to find the category ID, then use createChannel
+   4. When creating roles, use administrator: true for admin roles
+   5. Pick sensible defaults for colors and other optional parameters
+   6. ALWAYS respond with descriptive text explaining what you did
+   7. NEVER ask follow-up questions - just do what you can with the available tools`;
 
-  constructor({
-    client,
-    opts,
-    model,
-  }: {
-    client: Client;
-    opts: HandlerOptions;
-    model: LanguageModel;
-  }) {
+  private rules: string[] = [];
+
+  constructor({ client, opts, model, system }: HandlerProps) {
     this.model = model;
+    if (system) this.systemPrompt += system;
+
     if (opts.mode === 'message-handler') {
       client.on(Events.MessageCreate, async (message: Message) => {
         if (!this.guild) this.guild = message.guild;
@@ -69,17 +83,15 @@ export class DiscordAIHandler {
       const result = await generateText({
         model: this.model,
         prompt: msg,
-        system: `
-You are a Discord server management AI. You have tools to manage a discord server.
-
-IMPORTANT RULES:
-1. ALWAYS use the appropriate tools to fulfill user requests
-2. When creating roles, use administrator: true for admin roles
-3. Pick sensible defaults for colors and other optional parameters
-4. ALWAYS respond with descriptive text explaining what you did
-5. NEVER ask follow-up questions - just do what you can with the available tools`,
+        system:
+          this.systemPrompt +
+          (this.rules.length == 0
+            ? ''
+            : 'Here are rules the user has defined for this bot: ' +
+              this.rules.join(',')),
         tools: tools(this.guild),
         maxRetries: 2,
+        stopWhen: stepCountIs(5),
       });
 
       const { text, toolResults } = result;
@@ -121,5 +133,17 @@ IMPORTANT RULES:
       console.error('AI generation error:', error);
       return 'Sorry, I encountered an error while processing your request. Please try again.';
     }
+  }
+
+  addRule(rule: string) {
+    this.rules.push(rule);
+  }
+
+  extendSystem(prompt: string) {
+    this.systemPrompt += prompt;
+  }
+
+  overrideSystem(prompt: string) {
+    this.systemPrompt = prompt;
   }
 }
