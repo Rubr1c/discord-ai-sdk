@@ -8,15 +8,21 @@ import { getChannelsTool } from './getChannels';
 import { deleteChannelTool } from './deleteChannel';
 import { renameChannelTool } from './renameChannel';
 import { deleteCategoryTool } from './deleteCategory';
+import { deleteRoleTool } from './deleteRole';
+import { assignRoleTool } from './assignRole';
+import { removeRoleTool } from './removeRole';
 
 export function tools(guild: Guild) {
   return {
-    createChannel: createChannelTool(guild),
     createRole: createRoleTool(guild),
+    getRoles: getRolesTool(guild),
+    deleteRole: deleteRoleTool(guild),
+    assignRole: assignRoleTool(guild),
+    removeRole: removeRoleTool(guild),
     createCategory: createCategoryTool(guild),
     getCategories: getCategoriesTool(guild),
     deleteCategory: deleteCategoryTool(guild),
-    getRoles: getRolesTool(guild),
+    createChannel: createChannelTool(guild),
     getChannels: getChannelsTool(guild),
     deleteChannel: deleteChannelTool(guild),
     renameChannel: renameChannelTool(guild),
