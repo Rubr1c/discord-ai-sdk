@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
 
-export function renameChannelTools(guild: Guild): Tool {
+export function renameChannelTool(guild: Guild): Tool {
   return tool({
     description: 'rename a channel',
     inputSchema: z.object({

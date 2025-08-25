@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
 
-export function deleteChannelTools(guild: Guild): Tool {
+export function deleteChannelTool(guild: Guild): Tool {
   return tool({
     description: 'delete a channel',
     inputSchema: z.object({

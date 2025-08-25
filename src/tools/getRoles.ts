@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
 
-export function getRolesTools(guild: Guild): Tool {
+export function getRolesTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing roles (name, color, id)',
     inputSchema: z.object(),

@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
 
-export function getCategoriesTools(guild: Guild): Tool {
+export function getCategoriesTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing channel categories',
     inputSchema: z.object(),

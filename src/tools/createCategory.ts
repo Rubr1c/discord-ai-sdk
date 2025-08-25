@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
 
-export function createCategoriesTools(guild: Guild): Tool {
+export function createCategoryTool(guild: Guild): Tool {
   return tool({
     description: 'create channel category',
     inputSchema: z.object({

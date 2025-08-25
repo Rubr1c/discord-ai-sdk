@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
 
-export function getChannelsTools(guild: Guild): Tool {
+export function getChannelsTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing channels',
     inputSchema: z.object(),
