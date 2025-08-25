@@ -12,9 +12,10 @@ import { tools } from './tools';
 
 export type HandlerProps = {
   client: Client;
-  opts: HandlerOptions;
+  bot_opts: HandlerOptions;
   model: LanguageModel;
   system?: string;
+  maxSteps?: number;
 };
 
 export class DiscordAIHandler {
@@ -33,16 +34,18 @@ export class DiscordAIHandler {
    7. NEVER ask follow-up questions - just do what you can with the available tools`;
 
   private rules: string[] = [];
+  private maxSteps: number = 5;
 
-  constructor({ client, opts, model, system }: HandlerProps) {
+  constructor({ client, bot_opts, model, system, maxSteps }: HandlerProps) {
     this.model = model;
     if (system) this.systemPrompt += system;
+    if (maxSteps) this.maxSteps = maxSteps;
 
-    if (opts.mode === 'message-handler') {
+    if (bot_opts.mode === 'message-handler') {
       client.on(Events.MessageCreate, async (message: Message) => {
         if (!this.guild) this.guild = message.guild;
 
-        if (message.content.startsWith(opts.activator)) {
+        if (message.content.startsWith(bot_opts.activator)) {
           const res = await this.handle(message.content);
           await message.reply(res);
         }
@@ -91,7 +94,7 @@ export class DiscordAIHandler {
               this.rules.join(',')),
         tools: tools(this.guild),
         maxRetries: 2,
-        stopWhen: stepCountIs(5),
+        stopWhen: stepCountIs(this.maxSteps),
       });
 
       const { text, toolResults } = result;
@@ -112,7 +115,6 @@ export class DiscordAIHandler {
           // Return the actual tool output when AI doesn't provide text
           const toolOutput = toolResults
             .map((result) => {
-              // Try to extract the actual result value from the tool result
               const resultValue =
                 (result as any).result ||
                 (result as any).output ||
@@ -137,6 +139,10 @@ export class DiscordAIHandler {
 
   addRule(rule: string) {
     this.rules.push(rule);
+  }
+
+  removeRule(rule: string) {
+    this.rules = this.rules.filter((r) => r != rule);
   }
 
   extendSystem(prompt: string) {
