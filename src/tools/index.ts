@@ -5,6 +5,8 @@ import { getCategoriesTools } from './getCategories';
 import { createCategoriesTools } from './createCategory';
 import { getRolesTools } from './getRoles';
 import { getChannelsTools } from './getChannels';
+import { deleteChannelTools } from './deleteChannel';
+import { renameChannelTools } from './renameChannel';
 
 export function tools(guild: Guild) {
   return {
@@ -14,5 +16,7 @@ export function tools(guild: Guild) {
     getCategories: getCategoriesTools(guild),
     getRoles: getRolesTools(guild),
     getChannels: getChannelsTools(guild),
+    deleteChannel: deleteChannelTools(guild),
+    renameChannel: renameChannelTools(guild),
   };
 }
