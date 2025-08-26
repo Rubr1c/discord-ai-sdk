@@ -35,6 +35,69 @@ export class DiscordAIHandler {
 
   private rules: string[] = [];
   private maxSteps: number = 5;
+  private static readonly DISCORD_MESSAGE_LIMIT = 2000;
+
+  /**
+   * Splits a message into chunks that respect Discord's message limit
+   */
+  private splitMessage(message: string): string[] {
+    if (message.length <= DiscordAIHandler.DISCORD_MESSAGE_LIMIT) {
+      return [message];
+    }
+
+    const chunks: string[] = [];
+    let currentChunk = '';
+
+    // Split by lines first to avoid breaking in the middle of sentences
+    const lines = message.split('\n');
+
+    for (const line of lines) {
+      // If a single line is too long, we need to split it by words
+      if (line.length > DiscordAIHandler.DISCORD_MESSAGE_LIMIT) {
+        // First, add any current chunk if it exists
+        if (currentChunk.trim()) {
+          chunks.push(currentChunk.trim());
+          currentChunk = '';
+        }
+
+        // Split the long line by words
+        const words = line.split(' ');
+        for (const word of words) {
+          if (
+            (currentChunk + word + ' ').length >
+            DiscordAIHandler.DISCORD_MESSAGE_LIMIT
+          ) {
+            if (currentChunk.trim()) {
+              chunks.push(currentChunk.trim());
+            }
+            currentChunk = word + ' ';
+          } else {
+            currentChunk += word + ' ';
+          }
+        }
+      } else {
+        // Check if adding this line would exceed the limit
+        if (
+          (currentChunk + line + '\n').length >
+          DiscordAIHandler.DISCORD_MESSAGE_LIMIT
+        ) {
+          if (currentChunk.trim()) {
+            chunks.push(currentChunk.trim());
+          }
+          currentChunk = line + '\n';
+        } else {
+          currentChunk += line + '\n';
+        }
+      }
+    }
+
+    // Add the last chunk if it exists
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim());
+    }
+
+    return chunks.length > 0 ? chunks : [message];
+  }
 
   constructor({ client, bot_opts, model, system, maxSteps }: HandlerProps) {
     this.model = model;
@@ -47,13 +110,32 @@ export class DiscordAIHandler {
 
         if (message.content.startsWith(bot_opts.activator)) {
           const res = await this.handle(message.content);
-          await message.reply(res);
+          const chunks = this.splitMessage(res);
+
+          // Send the first chunk as a reply
+          if (chunks.length > 0 && chunks[0]) {
+            await message.reply(chunks[0]);
+
+            // Send additional chunks as follow-up messages
+            for (let i = 1; i < chunks.length; i++) {
+              const chunk = chunks[i];
+              if (chunk && 'send' in message.channel) {
+                await message.channel.send(chunk);
+              }
+            }
+          }
         }
       });
     } else {
       const cmd = new SlashCommandBuilder()
         .setName('aihelp')
-        .setDescription('AI can help u with stuff in the server');
+        .setDescription('AI can help u with stuff in the server')
+        .addStringOption((option) =>
+          option
+            .setName('prompt')
+            .setDescription('What you want the AI to help with')
+            .setRequired(true)
+        );
 
       client.once(Events.ClientReady, async () => {
         try {
@@ -69,7 +151,43 @@ export class DiscordAIHandler {
 
         if (!interaction.isChatInputCommand()) return;
         if (interaction.commandName === 'aihelp') {
-          await interaction.reply('command builder');
+          const prompt = interaction.options.getString('prompt');
+          if (!prompt) {
+            await interaction.reply(
+              'Please provide a prompt for the AI to help with.'
+            );
+            return;
+          }
+
+          // Defer the reply since AI processing might take time
+          await interaction.deferReply();
+
+          try {
+            const res = await this.handle(prompt);
+            const chunks = this.splitMessage(res);
+
+            // Send the first chunk as the initial reply
+            if (chunks.length > 0 && chunks[0]) {
+              await interaction.editReply(chunks[0]);
+
+              // Send additional chunks as follow-up messages
+              for (let i = 1; i < chunks.length; i++) {
+                const chunk = chunks[i];
+                if (chunk) {
+                  await interaction.followUp(chunk);
+                }
+              }
+            } else {
+              await interaction.editReply(
+                "I received your request but couldn't generate a proper response."
+              );
+            }
+          } catch (error) {
+            console.error('Error handling slash command:', error);
+            await interaction.editReply(
+              'Sorry, I encountered an error while processing your request. Please try again.'
+            );
+          }
         }
       });
     }

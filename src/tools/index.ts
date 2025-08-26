@@ -11,6 +11,10 @@ import { deleteCategoryTool } from './deleteCategory';
 import { deleteRoleTool } from './deleteRole';
 import { assignRoleTool } from './assignRole';
 import { removeRoleTool } from './removeRole';
+import { getMembersTool } from './getMembers';
+import { kickMemberTool } from './kickMember';
+import { banMemberTool } from './banMember';
+import { unbanMemberTool } from './unbanMember';
 
 export function tools(guild: Guild) {
   return {
@@ -26,5 +30,9 @@ export function tools(guild: Guild) {
     getChannels: getChannelsTool(guild),
     deleteChannel: deleteChannelTool(guild),
     renameChannel: renameChannelTool(guild),
+    getMembers: getMembersTool(guild),
+    kickMember: kickMemberTool(guild),
+    banMember: banMemberTool(guild),
+    unbanMember: unbanMemberTool(guild),
   };
 }
