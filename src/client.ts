@@ -1,4 +1,5 @@
 import {
+  Collection,
   Events,
   Guild,
   Message,
@@ -7,7 +8,7 @@ import {
   type Interaction,
 } from 'discord.js';
 import type { HandlerOptions } from './types';
-import { generateText, stepCountIs, type LanguageModel } from 'ai';
+import { generateText, stepCountIs, type LanguageModel, type Tool } from 'ai';
 import { tools } from './tools';
 
 export type HandlerProps = {
@@ -16,6 +17,8 @@ export type HandlerProps = {
   model: LanguageModel;
   system?: string;
   maxSteps?: number;
+  maxRetries?: number;
+  tools?: Record<string, Tool>;
 };
 
 export class DiscordAIHandler {
@@ -35,6 +38,7 @@ export class DiscordAIHandler {
 
   private rules: string[] = [];
   private maxSteps: number = 5;
+  private tools: Record<string, Tool> | null = null;
   private static readonly DISCORD_MESSAGE_LIMIT = 2000;
 
   /**
@@ -99,8 +103,16 @@ export class DiscordAIHandler {
     return chunks.length > 0 ? chunks : [message];
   }
 
-  constructor({ client, bot_opts, model, system, maxSteps }: HandlerProps) {
+  constructor({
+    client,
+    bot_opts,
+    model,
+    system,
+    maxSteps,
+    tools,
+  }: HandlerProps) {
     this.model = model;
+    if (tools) this.tools = tools;
     if (system) this.systemPrompt += system;
     if (maxSteps) this.maxSteps = maxSteps;
 
@@ -198,8 +210,12 @@ export class DiscordAIHandler {
 
     console.log('Processing message:', msg);
 
+    if (!this.tools) {
+      this.tools = tools(this.guild);
+    }
+
     try {
-      console.log('Available tools:', Object.keys(tools(this.guild)));
+      console.log('Available tools:', Object.keys(this.tools));
 
       const result = await generateText({
         model: this.model,
@@ -208,9 +224,9 @@ export class DiscordAIHandler {
           this.systemPrompt +
           (this.rules.length == 0
             ? ''
-            : 'Here are rules the user has defined for this bot: ' +
+            : '\nHere are rules the user has defined for this bot: ' +
               this.rules.join(',')),
-        tools: tools(this.guild),
+        tools: this.tools,
         maxRetries: 2,
         stopWhen: stepCountIs(this.maxSteps),
       });
@@ -269,5 +285,21 @@ export class DiscordAIHandler {
 
   overrideSystem(prompt: string) {
     this.systemPrompt = prompt;
+  }
+
+  addTools(tools: Record<string, Tool>) {
+    this.tools = { ...this.tools, ...tools };
+  }
+
+  setTools(tools: Record<string, Tool>) {
+    this.tools = tools;
+  }
+
+  clearTools() {
+    this.tools = {};
+  }
+
+  resetTools() {
+    this.tools = null;
   }
 }
