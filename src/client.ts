@@ -1,5 +1,4 @@
 import {
-  Collection,
   Events,
   Guild,
   Message,
@@ -289,6 +288,15 @@ export class DiscordAIHandler {
 
   addTools(tools: Record<string, Tool>) {
     this.tools = { ...this.tools, ...tools };
+  }
+
+  removeTool(toolName: string): boolean {
+    if (!this.tools || !(toolName in this.tools)) {
+      return false;
+    }
+
+    delete this.tools[toolName];
+    return true;
   }
 
   setTools(tools: Record<string, Tool>) {

@@ -15,6 +15,8 @@ import { getMembersTool } from './getMembers';
 import { kickMemberTool } from './kickMember';
 import { banMemberTool } from './banMember';
 import { unbanMemberTool } from './unbanMember';
+import { getServerInfoTool } from './getServerInfo';
+import { setServerNameTool } from './setServerName';
 
 export function tools(guild: Guild) {
   return {
@@ -34,5 +36,7 @@ export function tools(guild: Guild) {
     kickMember: kickMemberTool(guild),
     banMember: banMemberTool(guild),
     unbanMember: unbanMemberTool(guild),
+    getServerInfo: getServerInfoTool(guild),
+    setServerName: setServerNameTool(guild),
   };
 }
