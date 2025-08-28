@@ -5,23 +5,11 @@ import {
   Message,
   PermissionsBitField,
   SlashCommandBuilder,
-  type Client,
   type Interaction,
 } from 'discord.js';
-import type { HandlerOptions } from './types';
 import { generateText, stepCountIs, type LanguageModel, type Tool } from 'ai';
-import { tools } from './tools';
-
-export type HandlerProps = {
-  client: Client;
-  bot_opts: HandlerOptions;
-  model: LanguageModel;
-  system?: string;
-  maxSteps?: number;
-  maxRetries?: number;
-  tools?: Record<string, Tool>;
-  requiredRole?: string;
-};
+import { tools, type BuiltInTools } from './tools';
+import type { HandlerProps } from './types';
 
 export class DiscordAIHandler {
   private guild: Guild | null = null;
@@ -40,6 +28,7 @@ export class DiscordAIHandler {
 
   private rules: string[] = [];
   private maxSteps: number = 5;
+  private maxRetires: number = 2;
   private tools: Record<string, Tool> | null = null;
   private static readonly DISCORD_MESSAGE_LIMIT = 2000;
 
@@ -105,27 +94,20 @@ export class DiscordAIHandler {
     return chunks.length > 0 ? chunks : [message];
   }
 
-  constructor({
-    client,
-    bot_opts,
-    model,
-    system,
-    maxSteps,
-    tools,
-    requiredRole,
-  }: HandlerProps) {
-    this.model = model;
-    if (tools) this.tools = tools;
-    if (system) this.systemPrompt += system;
-    if (maxSteps) this.maxSteps = maxSteps;
+  constructor({ bot_config, ai_config }: HandlerProps) {
+    this.model = ai_config.model;
+    if (ai_config.tools) this.tools = ai_config.tools;
+    if (ai_config.system) this.systemPrompt += ai_config.system;
+    if (ai_config.maxSteps) this.maxSteps = ai_config.maxSteps;
+    if (ai_config.maxRetries) this.maxRetires = ai_config.maxRetries;
 
-    if (bot_opts.mode === 'message-handler') {
-      client.on(Events.MessageCreate, async (message: Message) => {
+    if (bot_config.mode === 'message-handler') {
+      bot_config.client.on(Events.MessageCreate, async (message: Message) => {
         if (!this.guild) this.guild = message.guild;
 
-        if (message.content.startsWith(bot_opts.activator)) {
-          const hasPermission = requiredRole
-            ? message.member?.roles.cache.has(requiredRole)
+        if (message.content.startsWith(bot_config.activator)) {
+          const hasPermission = bot_config.requiredRole
+            ? message.member?.roles.cache.has(bot_config.requiredRole)
             : message.member?.permissions.has(
                 PermissionsBitField.Flags.Administrator
               );
@@ -153,7 +135,7 @@ export class DiscordAIHandler {
       });
     } else {
       const cmd = new SlashCommandBuilder()
-        .setName(bot_opts.activator)
+        .setName(bot_config.activator)
         .setDescription('AI can help u with stuff in the server')
         .addStringOption((option) =>
           option
@@ -162,73 +144,78 @@ export class DiscordAIHandler {
             .setRequired(true)
         );
 
-      client.once(Events.ClientReady, async () => {
+      bot_config.client.once(Events.ClientReady, async () => {
         try {
-          await client.application?.commands.create(cmd);
+          await bot_config.client.application?.commands.create(cmd);
           console.log('AI Command Created');
         } catch (error) {
           console.error('Failed to register slash command:', error);
         }
       });
 
-      client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-        if (!this.guild) this.guild = interaction.guild;
+      bot_config.client.on(
+        Events.InteractionCreate,
+        async (interaction: Interaction) => {
+          if (!this.guild) this.guild = interaction.guild;
 
-        if (!interaction.isChatInputCommand()) return;
-        if (interaction.commandName === bot_opts.activator) {
-          const member = interaction.member as GuildMember;
+          if (!interaction.isChatInputCommand()) return;
+          if (interaction.commandName === bot_config.activator) {
+            const member = interaction.member as GuildMember;
 
-          const hasPermission = requiredRole
-            ? member?.roles.cache.has(requiredRole) // must have role
-            : member?.permissions.has(PermissionsBitField.Flags.Administrator); // fallback admin
+            const hasPermission = bot_config.requiredRole
+              ? member?.roles.cache.has(bot_config.requiredRole) // must have role
+              : member?.permissions.has(
+                  PermissionsBitField.Flags.Administrator
+                ); // fallback admin
 
-          if (!hasPermission) {
-            await interaction.reply({
-              content: 'You don’t have permission to use this command.',
-              ephemeral: true,
-            });
-            return;
-          }
+            if (!hasPermission) {
+              await interaction.reply({
+                content: 'You don’t have permission to use this command.',
+                ephemeral: true,
+              });
+              return;
+            }
 
-          const prompt = interaction.options.getString('prompt');
-          if (!prompt) {
-            await interaction.reply(
-              'Please provide a prompt for the AI to help with.'
-            );
-            return;
-          }
+            const prompt = interaction.options.getString('prompt');
+            if (!prompt) {
+              await interaction.reply(
+                'Please provide a prompt for the AI to help with.'
+              );
+              return;
+            }
 
-          // Defer the reply since AI processing might take time
-          await interaction.deferReply();
+            // Defer the reply since AI processing might take time
+            await interaction.deferReply();
 
-          try {
-            const res = await this.handle(prompt);
-            const chunks = this.splitMessage(res);
+            try {
+              const res = await this.handle(prompt);
+              const chunks = this.splitMessage(res);
 
-            // Send the first chunk as the initial reply
-            if (chunks.length > 0 && chunks[0]) {
-              await interaction.editReply(chunks[0]);
+              // Send the first chunk as the initial reply
+              if (chunks.length > 0 && chunks[0]) {
+                await interaction.editReply(chunks[0]);
 
-              // Send additional chunks as follow-up messages
-              for (let i = 1; i < chunks.length; i++) {
-                const chunk = chunks[i];
-                if (chunk) {
-                  await interaction.followUp(chunk);
+                // Send additional chunks as follow-up messages
+                for (let i = 1; i < chunks.length; i++) {
+                  const chunk = chunks[i];
+                  if (chunk) {
+                    await interaction.followUp(chunk);
+                  }
                 }
+              } else {
+                await interaction.editReply(
+                  "I received your request but couldn't generate a proper response."
+                );
               }
-            } else {
+            } catch (error) {
+              console.error('Error handling slash command:', error);
               await interaction.editReply(
-                "I received your request but couldn't generate a proper response."
+                'Sorry, I encountered an error while processing your request. Please try again.'
               );
             }
-          } catch (error) {
-            console.error('Error handling slash command:', error);
-            await interaction.editReply(
-              'Sorry, I encountered an error while processing your request. Please try again.'
-            );
           }
         }
-      });
+      );
     }
   }
 
@@ -254,7 +241,7 @@ export class DiscordAIHandler {
             : '\nHere are rules the user has defined for this bot: ' +
               this.rules.join(',')),
         tools: this.tools,
-        maxRetries: 2,
+        maxRetries: this.maxRetires,
         stopWhen: stepCountIs(this.maxSteps),
       });
 
@@ -318,7 +305,7 @@ export class DiscordAIHandler {
     this.tools = { ...this.tools, ...tools };
   }
 
-  removeTool(toolName: string): boolean {
+  removeTool(toolName: BuiltInTools | (string & {})): boolean {
     if (!this.tools || !(toolName in this.tools)) {
       return false;
     }

@@ -44,3 +44,5 @@ export function tools(guild: Guild) {
     setServerName: setServerNameTool(guild),
   };
 }
+
+export type BuiltInTools = keyof ReturnType<typeof tools>;
