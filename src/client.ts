@@ -1,7 +1,9 @@
 import {
   Events,
   Guild,
+  GuildMember,
   Message,
+  PermissionsBitField,
   SlashCommandBuilder,
   type Client,
   type Interaction,
@@ -18,6 +20,7 @@ export type HandlerProps = {
   maxSteps?: number;
   maxRetries?: number;
   tools?: Record<string, Tool>;
+  requiredRole?: string;
 };
 
 export class DiscordAIHandler {
@@ -109,6 +112,7 @@ export class DiscordAIHandler {
     system,
     maxSteps,
     tools,
+    requiredRole,
   }: HandlerProps) {
     this.model = model;
     if (tools) this.tools = tools;
@@ -120,6 +124,16 @@ export class DiscordAIHandler {
         if (!this.guild) this.guild = message.guild;
 
         if (message.content.startsWith(bot_opts.activator)) {
+          const hasPermission = requiredRole
+            ? message.member?.roles.cache.has(requiredRole)
+            : message.member?.permissions.has(
+                PermissionsBitField.Flags.Administrator
+              );
+
+          if (!hasPermission) {
+            return;
+          }
+
           const res = await this.handle(message.content);
           const chunks = this.splitMessage(res);
 
@@ -139,7 +153,7 @@ export class DiscordAIHandler {
       });
     } else {
       const cmd = new SlashCommandBuilder()
-        .setName('aihelp')
+        .setName(bot_opts.activator)
         .setDescription('AI can help u with stuff in the server')
         .addStringOption((option) =>
           option
@@ -161,7 +175,21 @@ export class DiscordAIHandler {
         if (!this.guild) this.guild = interaction.guild;
 
         if (!interaction.isChatInputCommand()) return;
-        if (interaction.commandName === 'aihelp') {
+        if (interaction.commandName === bot_opts.activator) {
+          const member = interaction.member as GuildMember;
+
+          const hasPermission = requiredRole
+            ? member?.roles.cache.has(requiredRole) // must have role
+            : member?.permissions.has(PermissionsBitField.Flags.Administrator); // fallback admin
+
+          if (!hasPermission) {
+            await interaction.reply({
+              content: 'You don’t have permission to use this command.',
+              ephemeral: true,
+            });
+            return;
+          }
+
           const prompt = interaction.options.getString('prompt');
           if (!prompt) {
             await interaction.reply(
