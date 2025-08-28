@@ -47,44 +47,23 @@ export function createRoleTool(guild: Guild): Tool {
       'Create a new Discord role with customizable name, color, and permissions (including admin roles)',
     inputSchema: z.object({
       name: z.string().describe('name of role'),
-      primaryColor: z
+      color: z
         .string()
-        .regex(/[0-9A-Fa-f]+/g)
+        .regex(/^[0-9A-Fa-f]{6}$/)
         .nullable()
         .default('5865F2')
         .describe(
-          'primary color in hex format like ff0000 for red (defaults to Discord blue)'
+          'role color in hex format like ff0000 for red (defaults to Discord blue)'
         ),
-      secondaryColor: z
-        .string()
-        .regex(/[0-9A-Fa-f]+/g)
-        .nullable()
-        .describe('secondary color in hex format (optional)'),
-      tertiaryColor: z
-        .string()
-        .regex(/[0-9A-Fa-f]+/g)
-        .nullable()
-        .describe('tertiary color in hex format (optional)'),
       mentionable: z
         .boolean()
         .default(true)
         .describe('should the role be mentionable (defualt true)'),
       permissions: PermissionSchema,
     }),
-    execute: async ({
-      name,
-      primaryColor,
-      secondaryColor,
-      tertiaryColor,
-      mentionable,
-      permissions,
-    }) => {
-      const colors: any = {
-        primaryColor: primaryColor || '5865F2', // Default Discord blue
-      };
-
-      if (secondaryColor) colors.secondaryColor = secondaryColor;
-      if (tertiaryColor) colors.tertiaryColor = tertiaryColor;
+    execute: async ({ name, color, mentionable, permissions }) => {
+      // Convert hex string to number for Discord API
+      const roleColor = color ? parseInt(color, 16) : parseInt('5865F2', 16);
 
       let rolePermissions: bigint[] = [];
 
@@ -120,7 +99,7 @@ export function createRoleTool(guild: Guild): Tool {
 
       const role = await guild.roles.create({
         name,
-        colors,
+        color: roleColor,
         mentionable,
         permissions: rolePermissions,
       });

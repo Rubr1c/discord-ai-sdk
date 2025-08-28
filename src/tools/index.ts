@@ -17,6 +17,8 @@ import { banMemberTool } from './banMember';
 import { unbanMemberTool } from './unbanMember';
 import { getServerInfoTool } from './getServerInfo';
 import { setServerNameTool } from './setServerName';
+import { getRoleIdTool } from './getRoleId';
+import { getUserIdTool } from './getUserId';
 
 export function tools(guild: Guild) {
   return {
@@ -25,6 +27,7 @@ export function tools(guild: Guild) {
     deleteRole: deleteRoleTool(guild),
     assignRole: assignRoleTool(guild),
     removeRole: removeRoleTool(guild),
+    getRoleId: getRoleIdTool(guild),
     createCategory: createCategoryTool(guild),
     getCategories: getCategoriesTool(guild),
     deleteCategory: deleteCategoryTool(guild),
@@ -36,6 +39,7 @@ export function tools(guild: Guild) {
     kickMember: kickMemberTool(guild),
     banMember: banMemberTool(guild),
     unbanMember: unbanMemberTool(guild),
+    getUserId: getUserIdTool(guild),
     getServerInfo: getServerInfoTool(guild),
     setServerName: setServerNameTool(guild),
   };
