@@ -5,12 +5,11 @@ import {
   Message,
   PermissionsBitField,
   SlashCommandBuilder,
-  TextChannel,
   type Interaction,
 } from 'discord.js';
 import { generateText, stepCountIs, type LanguageModel, type Tool } from 'ai';
 import { tools, type BuiltInTools } from './tools';
-import type { HandlerProps } from './types';
+import type { AiTool, HandlerProps } from './types';
 
 export class DiscordAIHandler {
   private guild: Guild | null = null;
@@ -40,7 +39,7 @@ export class DiscordAIHandler {
   private maxRetires: number;
 
   private rules: string[] = [];
-  private tools: Record<string, Tool> | null = null;
+  private tools: Record<string, AiTool> | null = null;
 
   /**
    * Splits a message into chunks that respect Discord's message limit
@@ -324,7 +323,9 @@ export class DiscordAIHandler {
             ? ''
             : '\nHere are rules the user has defined for this bot: ' +
               this.rules.join(',')),
-        tools: this.tools,
+        tools: Object.fromEntries(
+          Object.entries(this.tools).map(([key, aiTool]) => [key, aiTool.tool])
+        ),
         maxRetries: this.maxRetires,
         stopWhen: stepCountIs(this.maxSteps),
       });
@@ -385,7 +386,7 @@ export class DiscordAIHandler {
     this.systemPrompt = prompt;
   }
 
-  addTools(tools: Record<string, Tool>) {
+  addTools(tools: Record<string, AiTool>) {
     this.tools = { ...this.tools, ...tools };
   }
 
@@ -398,7 +399,7 @@ export class DiscordAIHandler {
     return true;
   }
 
-  setTools(tools: Record<string, Tool>) {
+  setTools(tools: Record<string, AiTool>) {
     this.tools = tools;
   }
 

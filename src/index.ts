@@ -1,3 +1,9 @@
 export { DiscordAIHandler } from './client';
 
-export type { AIConfig, BotConfig, HandlerProps } from './types';
+export type {
+  AiTool,
+  createTool,
+  AiConfig,
+  BotConfig,
+  HandlerProps,
+} from './types';
