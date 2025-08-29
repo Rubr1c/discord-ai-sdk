@@ -27,6 +27,6 @@ export type AIConfig = {
 };
 
 export type HandlerProps = {
-  bot_config: BotConfig;
-  ai_config: AIConfig;
+  botConfig: BotConfig;
+  aiConfig: AIConfig;
 };

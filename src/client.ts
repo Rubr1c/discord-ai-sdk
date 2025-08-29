@@ -13,6 +13,13 @@ import type { HandlerProps } from './types';
 
 export class DiscordAIHandler {
   private guild: Guild | null = null;
+
+  private static readonly DISCORD_MESSAGE_LIMIT = 2000;
+
+  private rateLimitCount: number;
+  private rateLimitWindowMs: number;
+  private readonly userRequestTimestamps = new Map<string, number[]>();
+
   private model: LanguageModel;
   private systemPrompt: string = `
    You are a Discord server management AI (discord bot). You have tools to manage a discord server.
@@ -26,11 +33,11 @@ export class DiscordAIHandler {
    6. ALWAYS respond with descriptive text explaining what you did
    7. NEVER ask follow-up questions - just do what you can with the available tools`;
 
+  private maxSteps: number;
+  private maxRetires: number;
+
   private rules: string[] = [];
-  private maxSteps: number = 5;
-  private maxRetires: number = 2;
   private tools: Record<string, Tool> | null = null;
-  private static readonly DISCORD_MESSAGE_LIMIT = 2000;
 
   /**
    * Splits a message into chunks that respect Discord's message limit
@@ -94,25 +101,39 @@ export class DiscordAIHandler {
     return chunks.length > 0 ? chunks : [message];
   }
 
-  constructor({ bot_config, ai_config }: HandlerProps) {
-    this.model = ai_config.model;
-    if (ai_config.tools) this.tools = ai_config.tools;
-    if (ai_config.system) this.systemPrompt += ai_config.system;
-    if (ai_config.maxSteps) this.maxSteps = ai_config.maxSteps;
-    if (ai_config.maxRetries) this.maxRetires = ai_config.maxRetries;
+  constructor({ botConfig, aiConfig }: HandlerProps) {
+    this.model = aiConfig.model;
+    if (aiConfig.tools) this.tools = aiConfig.tools;
+    if (aiConfig.system) this.systemPrompt += aiConfig.system;
 
-    if (bot_config.mode === 'message-handler') {
-      bot_config.client.on(Events.MessageCreate, async (message: Message) => {
+    this.maxSteps = aiConfig.maxSteps ?? 5;
+    this.maxRetires = aiConfig.maxRetries ?? 2;
+
+    this.rateLimitCount = botConfig.rateLimitCount ?? 3;
+    this.rateLimitWindowMs = botConfig.rateLimitWindowMs ?? 60000;
+
+    if (botConfig.mode === 'message-handler') {
+      botConfig.client.on(Events.MessageCreate, async (message: Message) => {
         if (!this.guild) this.guild = message.guild;
 
-        if (message.content.startsWith(bot_config.activator)) {
-          const hasPermission = bot_config.requiredRole
-            ? message.member?.roles.cache.has(bot_config.requiredRole)
+        if (message.content.startsWith(botConfig.activator)) {
+          const hasPermission = botConfig.requiredRole
+            ? message.member?.roles.cache.has(botConfig.requiredRole)
             : message.member?.permissions.has(
                 PermissionsBitField.Flags.Administrator
               );
 
           if (!hasPermission) {
+            return;
+          }
+
+          if (
+            this.guild?.ownerId !== message.author.id &&
+            this.isRateLimited(message.author.id)
+          ) {
+            await message.reply(
+              `You're sending commands too quickly. Please wait a moment.`
+            );
             return;
           }
 
@@ -135,7 +156,7 @@ export class DiscordAIHandler {
       });
     } else {
       const cmd = new SlashCommandBuilder()
-        .setName(bot_config.activator)
+        .setName(botConfig.activator)
         .setDescription('AI can help u with stuff in the server')
         .addStringOption((option) =>
           option
@@ -144,26 +165,26 @@ export class DiscordAIHandler {
             .setRequired(true)
         );
 
-      bot_config.client.once(Events.ClientReady, async () => {
+      botConfig.client.once(Events.ClientReady, async () => {
         try {
-          await bot_config.client.application?.commands.create(cmd);
+          await botConfig.client.application?.commands.create(cmd);
           console.log('AI Command Created');
         } catch (error) {
           console.error('Failed to register slash command:', error);
         }
       });
 
-      bot_config.client.on(
+      botConfig.client.on(
         Events.InteractionCreate,
         async (interaction: Interaction) => {
           if (!this.guild) this.guild = interaction.guild;
 
           if (!interaction.isChatInputCommand()) return;
-          if (interaction.commandName === bot_config.activator) {
+          if (interaction.commandName === botConfig.activator) {
             const member = interaction.member as GuildMember;
 
-            const hasPermission = bot_config.requiredRole
-              ? member?.roles.cache.has(bot_config.requiredRole) // must have role
+            const hasPermission = botConfig.requiredRole
+              ? member?.roles.cache.has(botConfig.requiredRole) // must have role
               : member?.permissions.has(
                   PermissionsBitField.Flags.Administrator
                 ); // fallback admin
@@ -171,6 +192,17 @@ export class DiscordAIHandler {
             if (!hasPermission) {
               await interaction.reply({
                 content: 'You don’t have permission to use this command.',
+                ephemeral: true,
+              });
+              return;
+            }
+
+            if (
+              this.guild?.ownerId !== interaction.user.id &&
+              this.isRateLimited(interaction.user.id)
+            ) {
+              await interaction.reply({
+                content: `You're sending commands too quickly. Please wait a moment.`,
                 ephemeral: true,
               });
               return;
@@ -217,6 +249,26 @@ export class DiscordAIHandler {
         }
       );
     }
+  }
+
+  private isRateLimited(userId: string): boolean {
+    const now = Date.now();
+    const startWindow = now - this.rateLimitWindowMs;
+
+    const userTimestamps = this.userRequestTimestamps.get(userId) ?? [];
+
+    const recentTimestamps = userTimestamps.filter(
+      (timestamp) => timestamp > startWindow
+    );
+
+    if (recentTimestamps.length >= this.rateLimitCount) {
+      return true;
+    }
+
+    recentTimestamps.push(now);
+    this.userRequestTimestamps.set(userId, recentTimestamps);
+
+    return false;
   }
 
   private async handle(msg: string): Promise<string> {
