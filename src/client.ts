@@ -5,6 +5,7 @@ import {
   Message,
   PermissionsBitField,
   SlashCommandBuilder,
+  TextChannel,
   type Interaction,
 } from 'discord.js';
 import { generateText, stepCountIs, type LanguageModel, type Tool } from 'ai';
@@ -19,6 +20,8 @@ export class DiscordAIHandler {
   private rateLimitCount: number;
   private rateLimitWindowMs: number;
   private readonly userRequestTimestamps = new Map<string, number[]>();
+
+  private allowedChannles: string[];
 
   private model: LanguageModel;
   private systemPrompt: string = `
@@ -112,6 +115,8 @@ export class DiscordAIHandler {
     this.rateLimitCount = botConfig.rateLimitCount ?? 3;
     this.rateLimitWindowMs = botConfig.rateLimitWindowMs ?? 60000;
 
+    this.allowedChannles = botConfig.allowedChannels ?? [];
+
     if (botConfig.mode === 'message-handler') {
       botConfig.client.on(Events.MessageCreate, async (message: Message) => {
         if (!this.guild) this.guild = message.guild;
@@ -123,9 +128,15 @@ export class DiscordAIHandler {
                 PermissionsBitField.Flags.Administrator
               );
 
-          if (!hasPermission) {
+          if (!hasPermission) return;
+
+          if (
+            this.allowedChannles.length > 0 &&
+            'name' in message.channel &&
+            message.channel.name &&
+            !this.allowedChannles.includes(message.channel.name)
+          )
             return;
-          }
 
           if (
             this.guild?.ownerId !== message.author.id &&
@@ -181,17 +192,38 @@ export class DiscordAIHandler {
 
           if (!interaction.isChatInputCommand()) return;
           if (interaction.commandName === botConfig.activator) {
+            if (!interaction.channel) {
+              await interaction.reply({
+                content: 'Command only available in servers.',
+                ephemeral: true,
+              });
+              return;
+            }
+
             const member = interaction.member as GuildMember;
 
             const hasPermission = botConfig.requiredRole
-              ? member?.roles.cache.has(botConfig.requiredRole) // must have role
+              ? member?.roles.cache.has(botConfig.requiredRole)
               : member?.permissions.has(
                   PermissionsBitField.Flags.Administrator
-                ); // fallback admin
+                );
 
             if (!hasPermission) {
               await interaction.reply({
                 content: 'You don’t have permission to use this command.',
+                ephemeral: true,
+              });
+              return;
+            }
+
+            if (
+              this.allowedChannles.length > 0 &&
+              'name' in interaction.channel &&
+              interaction.channel.name &&
+              !this.allowedChannles.includes(interaction.channel.name)
+            ) {
+              await interaction.reply({
+                content: `You're not allowed to use this command in this channel`,
                 ephemeral: true,
               });
               return;
