@@ -19,9 +19,14 @@ import { getServerInfoTool } from './getServerInfo';
 import { setServerNameTool } from './setServerName';
 import { getRoleIdTool } from './getRoleId';
 import { getUserIdTool } from './getUserId';
-import { createTool, type AiTool } from '../types';
+import {
+  createTool,
+  type AITool,
+  type ToolProvider,
+  type RequestContext,
+} from '../core/types';
 
-export function tools(guild: Guild): Record<string, AiTool> {
+export function discordApiTools(guild: Guild): Record<string, AITool> {
   return {
     createRole: createTool(createRoleTool(guild), 'mid'),
     getRoles: createTool(getRolesTool(guild), 'low'),
@@ -46,4 +51,10 @@ export function tools(guild: Guild): Record<string, AiTool> {
   };
 }
 
-export type BuiltInTools = keyof ReturnType<typeof tools>;
+export class DiscordToolProvider implements ToolProvider {
+  getTools(ctx: RequestContext): Record<string, AITool> {
+    return discordApiTools(ctx.guild);
+  }
+}
+
+export type BuiltInTools = keyof ReturnType<typeof discordApiTools>;
