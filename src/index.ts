@@ -9,9 +9,6 @@ export { AIError } from './core/error';
 // Core Types & Interfaces
 export type {
   AITool,
-  AiConfig,
-  BotConfig,
-  HandlerProps,
   RequestContext,
   LLMResult,
   Safety,

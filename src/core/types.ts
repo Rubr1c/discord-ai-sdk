@@ -1,6 +1,6 @@
-import type { LanguageModel, Tool } from 'ai';
+import type { Tool } from 'ai';
 import type {
-  Client,
+
   Guild,
   GuildMember,
   APIInteractionGuildMember,
@@ -31,11 +31,11 @@ export interface LLMResult {
 export type Safety = 'low' | 'mid' | 'high';
 
 export interface AITool {
-  tool: Tool;
+  tool: (guild: Guild) => Tool;
   safetyLevel: Safety;
 }
 
-export function createTool(tool: Tool, safetyLevel: Safety) {
+export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
   return { tool, safetyLevel };
 }
 
@@ -45,32 +45,27 @@ export interface ToolProvider {
 
 export type BotMode = 'slash' | 'message';
 
-export interface BotConfig {
-  client: Client;
-  mode: BotMode;
-  activator: string;
-  requiredRole?: string;
-  ephemeralReplies?: boolean;
-  rateLimitCount?: number;
-  rateLimitWindowMs?: number;
-  allowedChannels?: string[];
-  logLevel?: 'debug' | 'info' | 'warn' | 'error';
-  auditLogging?: boolean | { channelId: string };
-}
+// export interface BotConfig {
+//   client: Client;
+//   mode: BotMode;
+//   activator: string;
+//   requiredRole?: string;
+//   ephemeralReplies?: boolean;
+//   rateLimitCount?: number;
+//   rateLimitWindowMs?: number;
+//   allowedChannels?: string[];
+//   logLevel?: 'debug' | 'info' | 'warn' | 'error';
+//   auditLogging?: boolean | { channelId: string };
+// }
 
-export interface AiConfig {
-  model: LanguageModel;
-  system?: string;
-  maxSteps?: number;
-  maxRetries?: number;
-  tools?: Record<string, AITool>;
-  temperature?: number;
-  maxTokens?: number;
-  safetyLevel?: Safety;
-  fallbackModel?: LanguageModel;
-}
-
-export interface HandlerProps {
-  botConfig: BotConfig;
-  aiConfig: AiConfig;
-}
+// export interface AiConfig {
+//   model: LanguageModel;
+//   system?: string;
+//   maxSteps?: number;
+//   maxRetries?: number;
+//   tools?: Record<string, AITool>;
+//   temperature?: number;
+//   maxTokens?: number;
+//   safetyLevel?: Safety;
+//   fallbackModel?: LanguageModel;
+// }

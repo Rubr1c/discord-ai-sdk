@@ -1,5 +1,6 @@
 import {
   Events,
+  Guild,
   Message,
   PermissionsBitField,
   SlashCommandBuilder,
@@ -15,8 +16,8 @@ export type DiscordRouterProps = {
   mode: BotMode;
   engine: AIEngine;
   activator: string;
-  requiredRole?: string;
-  allowedChannels?: string[];
+  requiredRoleFn?: (guild: Guild) => Promise<string>;
+  allowedChannelsFn?: (guild: Guild) => Promise<string[]>;
   ephemeralReplies?: boolean;
 };
 
@@ -25,8 +26,8 @@ export class DiscordRouter {
 
   private mode: BotMode;
   private activator: string;
-  private requiredRole: string | undefined;
-  private allowedChannels: string[];
+  private requiredRoleFn: ((guild: Guild) => Promise<string>) | undefined;
+  private allowedChannelsFn: ((guild: Guild) => Promise<string[]>) | undefined;
   private ephemeralReplies: boolean;
   private engine: AIEngine;
 
@@ -34,14 +35,14 @@ export class DiscordRouter {
     mode,
     engine,
     activator,
-    requiredRole,
-    allowedChannels,
+    requiredRoleFn,
+    allowedChannelsFn,
     ephemeralReplies,
   }: DiscordRouterProps) {
     this.mode = mode;
     this.activator = activator;
-    this.requiredRole = requiredRole;
-    this.allowedChannels = allowedChannels ?? [];
+    this.requiredRoleFn = requiredRoleFn;
+    this.allowedChannelsFn = allowedChannelsFn;
     this.ephemeralReplies = ephemeralReplies ?? false;
     this.engine = engine;
   }
@@ -116,14 +117,14 @@ export class DiscordRouter {
   }
 
   private async dispatch(ctx: RequestContext): Promise<string> {
-    if (!this.hasPermission(ctx)) {
+    if (!(await this.hasPermission(ctx))) {
       throw new AIError(
         'NO_PERMISSION',
         `User[${ctx.userId}] has no permission`
       );
     }
 
-    if (!this.inAllowedChannel(ctx)) {
+    if (!(await this.inAllowedChannel(ctx))) {
       throw new AIError(
         'NO_PERMISSION',
         `Channel[${ctx.channel.id}] is not allowed to use this`
@@ -143,23 +144,25 @@ export class DiscordRouter {
     }
   }
 
-  private inAllowedChannel(ctx: RequestContext): boolean {
-    if (this.allowedChannels.length === 0) return true;
-    return this.allowedChannels.includes(ctx.channel.name);
+  private async inAllowedChannel(ctx: RequestContext): Promise<boolean> {
+    if (!this.allowedChannelsFn) return true;
+    return (await this.allowedChannelsFn(ctx.guild)).includes(ctx.channel.id);
   }
 
-  private hasPermission(ctx: RequestContext): boolean {
+  private async hasPermission(ctx: RequestContext): Promise<boolean> {
     if (!ctx.member) return false;
 
-    if (this.requiredRole) {
+    if (this.requiredRoleFn) {
+      const role = await this.requiredRoleFn(ctx.guild);
+
       if (
         'roles' in ctx.member &&
         typeof ctx.member.roles === 'object' &&
         'cache' in ctx.member.roles
       ) {
-        return ctx.member.roles.cache.has(this.requiredRole);
+        return ctx.member.roles.cache.has(role);
       } else if ('roles' in ctx.member && Array.isArray(ctx.member.roles)) {
-        return ctx.member.roles.includes(this.requiredRole);
+        return ctx.member.roles.includes(role);
       }
       return false;
     } else {

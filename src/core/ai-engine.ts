@@ -4,16 +4,16 @@ import {
   type RequestContext,
   type ToolProvider,
 } from './types';
-import type { RateLimiter } from './rate-limiter';
+import { RateLimiter } from './rate-limiter';
 import { ToolRegistry } from './tool-registry';
-import type { PromptBuilder } from './prompt-builder';
+import { PromptBuilder } from './prompt-builder';
 import { AIError } from './error';
 
 export interface AIEngineProps {
   model: LanguageModel;
-  promptBuilder: PromptBuilder;
+  promptBuilder?: PromptBuilder;
   toolRegistry?: ToolRegistry;
-  rateLimiter: RateLimiter;
+  rateLimiter?: RateLimiter;
   maxSteps?: number;
   maxRetries?: number;
 }
@@ -23,9 +23,13 @@ export class AIEngine {
 
   constructor({ ...params }: AIEngineProps) {
     this.config = {
-      ...params,
+      model: params.model,
+      promptBuilder: params.promptBuilder || new PromptBuilder(),
       toolRegistry: params.toolRegistry || new ToolRegistry(),
-    } as Required<AIEngineProps>;
+      rateLimiter: params.rateLimiter || new RateLimiter(3, 60000),
+      maxRetries: params.maxRetries || 2,
+      maxSteps: params.maxSteps || 5,
+    };
   }
 
   public async handle(
@@ -60,11 +64,11 @@ export class AIEngine {
       system: prompts.system,
       tools: Object.fromEntries(
         Object.entries(this.config.toolRegistry.getAllTools(ctx)).map(
-          ([name, aiTool]) => [name, aiTool.tool]
+          ([name, aiTool]) => [name, aiTool.tool(ctx.guild)]
         )
       ),
-      maxRetries: this.config.maxRetries ?? 2,
-      stopWhen: stepCountIs(this.config.maxSteps ?? 5),
+      maxRetries: this.config.maxRetries,
+      stopWhen: stepCountIs(this.config.maxSteps),
     });
 
     return {
