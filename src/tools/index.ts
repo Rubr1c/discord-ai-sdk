@@ -1,24 +1,24 @@
 import type { Guild } from 'discord.js';
-import { createChannelTool } from './createChannel';
-import { createRoleTool } from './createRole';
-import { getCategoriesTool } from './getCategories';
-import { createCategoryTool } from './createCategory';
-import { getRolesTool } from './getRoles';
-import { getChannelsTool } from './getChannels';
-import { deleteChannelTool } from './deleteChannel';
-import { renameChannelTool } from './renameChannel';
-import { deleteCategoryTool } from './deleteCategory';
-import { deleteRoleTool } from './deleteRole';
-import { assignRoleTool } from './assignRole';
-import { removeRoleTool } from './removeRole';
-import { getMembersTool } from './getMembers';
-import { kickMemberTool } from './kickMember';
-import { banMemberTool } from './banMember';
-import { unbanMemberTool } from './unbanMember';
-import { getServerInfoTool } from './getServerInfo';
-import { setServerNameTool } from './setServerName';
-import { getRoleIdTool } from './getRoleId';
-import { getUserIdTool } from './getUserId';
+import { createChannelTool } from './channel/create';
+import { createRoleTool } from './role/create';
+import { getCategoriesTool } from './category/get-all';
+import { createCategoryTool } from './category/create';
+import { getRolesTool } from './role/get-all';
+import { getChannelsTool } from './channel/get-all';
+import { deleteChannelTool } from './channel/delete';
+import { renameChannelTool } from './channel/rename';
+import { deleteCategoryTool } from './category/delete';
+import { deleteRoleTool } from './role/delete';
+import { assignRoleTool } from './role/assign';
+import { removeRoleTool } from './role/remove';
+import { getMembersTool } from './member/get-all';
+import { kickMemberTool } from './member/kick';
+import { banMemberTool } from './member/ban';
+import { unbanMemberTool } from './member/unban';
+import { getServerInfoTool } from './server/info';
+import { setServerNameTool } from './server/set-name';
+import { getRoleIdTool } from './role/get-id';
+import { getUserIdTool } from './user/get-id';
 import {
   createTool,
   type AITool,
