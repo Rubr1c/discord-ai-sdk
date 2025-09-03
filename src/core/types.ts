@@ -22,7 +22,13 @@ export interface LLMResult {
   }[];
 }
 
-export type Safety = 'low' | 'mid' | 'high';
+export const SAFETY = {
+  low: 0,
+  mid: 1,
+  high: 2,
+} as const;
+
+export type Safety = keyof typeof SAFETY;
 
 export interface AITool {
   tool: (guild: Guild) => Tool;

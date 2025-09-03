@@ -13,6 +13,8 @@ export interface AIEngineProps {
   rateLimiter?: RateLimiter;
   maxSteps?: number;
   maxRetries?: number;
+  temperature?: number;
+  maxTokens?: number;
 }
 
 export class AIEngine {
@@ -26,6 +28,8 @@ export class AIEngine {
       rateLimiter: params.rateLimiter || new RateLimiter(3, 60000),
       maxRetries: params.maxRetries || 2,
       maxSteps: params.maxSteps || 5,
+      temperature: params.temperature || 0,
+      maxTokens: params.maxTokens || 400,
     };
   }
 
@@ -60,12 +64,14 @@ export class AIEngine {
       prompt: prompts.prompt,
       system: prompts.system,
       tools: Object.fromEntries(
-        Object.entries(this.config.toolRegistry.getAllTools()).map(
+        Object.entries(this.config.toolRegistry.getAllAvailableTools()).map(
           ([name, aiTool]) => [name, aiTool.tool(ctx.guild)]
         )
       ),
       maxRetries: this.config.maxRetries,
       stopWhen: stepCountIs(this.config.maxSteps),
+      temperature: this.config.temperature,
+      maxOutputTokens: this.config.maxTokens,
     });
 
     return {
