@@ -7,7 +7,7 @@ export class ToolRegistry<
   TInitialTools extends Record<string, AITool> = Record<string, AITool>
 > {
   private tools: Record<string, AITool>;
-  private safetyModeCapFn: ((guild: Guild) => Promise<Safety>) | undefined;
+  private safetyModeCap: ((guild: Guild) => Promise<Safety>) | Safety = 'high';
 
   constructor(tools: TInitialTools = {} as TInitialTools) {
     this.tools = tools;
@@ -44,9 +44,13 @@ export class ToolRegistry<
   public async getAllAvailableTools(
     ctx: RequestContext
   ): Promise<Readonly<Record<string, AITool>>> {
-    if (!this.safetyModeCapFn) return this.getAllTools();
+    const safetyMode =
+      typeof this.safetyModeCap === 'function'
+        ? await this.safetyModeCap(ctx.guild)
+        : this.safetyModeCap;
 
-    const safetyMode = (await this.safetyModeCapFn(ctx.guild)) || 'high';
+    if (safetyMode === 'high') return this.getAllTools();
+    
     const currentSafetyLevel = SAFETY[safetyMode];
     const availableTools: Record<string, AITool> = {};
 
@@ -66,7 +70,7 @@ export class ToolRegistry<
     return Object.freeze(allTools);
   }
 
-  public setSafetyModeCapFn(fn: (guild: Guild) => Promise<Safety>) {
-    this.safetyModeCapFn = fn;
+  public setSafetyModeCapFn(cap: ((guild: Guild) => Promise<Safety>) | Safety) {
+    this.safetyModeCap = cap;
   }
 }

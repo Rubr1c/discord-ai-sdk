@@ -50,14 +50,3 @@ export type BotMode = 'slash' | 'message';
 //   auditLogging?: boolean | { channelId: string };
 // }
 
-// export interface AiConfig {
-//   model: LanguageModel;
-//   system?: string;
-//   maxSteps?: number;
-//   maxRetries?: number;
-//   tools?: Record<string, AITool>;
-//   temperature?: number;
-//   maxTokens?: number;
-//   safetyLevel?: Safety;
-//   fallbackModel?: LanguageModel;
-// }
