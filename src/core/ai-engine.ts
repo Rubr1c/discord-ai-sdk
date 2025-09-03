@@ -64,9 +64,9 @@ export class AIEngine {
       prompt: prompts.prompt,
       system: prompts.system,
       tools: Object.fromEntries(
-        Object.entries(this.config.toolRegistry.getAllAvailableTools()).map(
-          ([name, aiTool]) => [name, aiTool.tool(ctx.guild)]
-        )
+        Object.entries(
+          await this.config.toolRegistry.getAllAvailableTools(ctx)
+        ).map(([name, aiTool]) => [name, aiTool.tool(ctx.guild)])
       ),
       maxRetries: this.config.maxRetries,
       stopWhen: stepCountIs(this.config.maxSteps),

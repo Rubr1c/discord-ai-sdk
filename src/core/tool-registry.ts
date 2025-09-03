@@ -1,11 +1,13 @@
 import type { AITool, Safety } from './types';
 import { SAFETY } from './types';
+import type { RequestContext } from './types';
+import type { Guild } from 'discord.js';
 
 export class ToolRegistry<
   TInitialTools extends Record<string, AITool> = Record<string, AITool>
 > {
   private tools: Record<string, AITool>;
-  private safetyModeCap: Safety = 'high';
+  private safetyModeCapFn: ((guild: Guild) => Promise<Safety>) | undefined;
 
   constructor(tools: TInitialTools = {} as TInitialTools) {
     this.tools = tools;
@@ -39,8 +41,13 @@ export class ToolRegistry<
     return this.tools[name];
   }
 
-  public getAllAvailableTools(): Readonly<Record<string, AITool>> {
-    const currentSafetyLevel = SAFETY[this.safetyModeCap];
+  public async getAllAvailableTools(
+    ctx: RequestContext
+  ): Promise<Readonly<Record<string, AITool>>> {
+    if (!this.safetyModeCapFn) return this.getAllTools();
+
+    const safetyMode = (await this.safetyModeCapFn(ctx.guild)) || 'high';
+    const currentSafetyLevel = SAFETY[safetyMode];
     const availableTools: Record<string, AITool> = {};
 
     for (const [toolName, tool] of Object.entries(this.tools)) {
@@ -59,11 +66,7 @@ export class ToolRegistry<
     return Object.freeze(allTools);
   }
 
-  public setSafetyModeCap(mode: Safety) {
-    this.safetyModeCap = mode;
-  }
-
-  public getSafetyModeCap(): Safety {
-    return this.safetyModeCap;
+  public setSafetyModeCapFn(fn: (guild: Guild) => Promise<Safety>) {
+    this.safetyModeCapFn = fn;
   }
 }
