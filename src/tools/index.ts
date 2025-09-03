@@ -1,4 +1,3 @@
-import type { Guild } from 'discord.js';
 import { createChannelTool } from './channel/create';
 import { createRoleTool } from './role/create';
 import { getCategoriesTool } from './category/get-all';
@@ -19,42 +18,31 @@ import { getServerInfoTool } from './server/info';
 import { setServerNameTool } from './server/set-name';
 import { getRoleIdTool } from './role/get-id';
 import { getUserIdTool } from './user/get-id';
-import {
-  createTool,
-  type AITool,
-  type ToolProvider,
-  type RequestContext,
-} from '../core/types';
+import { createTool } from '../core/types';
 
-export function discordApiTools(guild: Guild): Record<string, AITool> {
-  return {
-    createRole: createTool(() => createRoleTool(guild), 'mid'),
-    getRoles: createTool(() => getRolesTool(guild), 'low'),
-    deleteRole: createTool(() => deleteRoleTool(guild), 'high'),
-    assignRole: createTool(() => assignRoleTool(guild), 'high'),
-    removeRole: createTool(() => removeRoleTool(guild), 'high'),
-    getRoleId: createTool(() => getRoleIdTool(guild), 'low'),
-    createCategory: createTool(() => createCategoryTool(guild), 'mid'),
-    getCategories: createTool(() => getCategoriesTool(guild), 'low'),
-    deleteCategory: createTool(() => deleteCategoryTool(guild), 'high'),
-    createChannel: createTool(() => createChannelTool(guild), 'mid'),
-    getChannels: createTool(() => getChannelsTool(guild), 'low'),
-    deleteChannel: createTool(() => deleteChannelTool(guild), 'high'),
-    renameChannel: createTool(() => renameChannelTool(guild), 'mid'),
-    getMembers: createTool(() => getMembersTool(guild), 'low'),
-    kickMember: createTool(() => kickMemberTool(guild), 'high'),
-    banMember: createTool(() => banMemberTool(guild), 'high'),
-    unbanMember: createTool(() => unbanMemberTool(guild), 'high'),
-    getUserId: createTool(() => getUserIdTool(guild), 'low'),
-    getServerInfo: createTool(() => getServerInfoTool(guild), 'low'),
-    setServerName: createTool(() => setServerNameTool(guild), 'high'),
-  };
+export const discordApiTools = {
+  createRole: createTool((guild) => createRoleTool(guild), 'mid'),
+  getRoles: createTool((guild) => getRolesTool(guild), 'low'),
+  deleteRole: createTool((guild) => deleteRoleTool(guild), 'high'),
+  assignRole: createTool((guild) => assignRoleTool(guild), 'high'),
+  removeRole: createTool((guild) => removeRoleTool(guild), 'high'),
+  getRoleId: createTool((guild) => getRoleIdTool(guild), 'low'),
+  createCategory: createTool((guild) => createCategoryTool(guild), 'mid'),
+  getCategories: createTool((guild) => getCategoriesTool(guild), 'low'),
+  deleteCategory: createTool((guild) => deleteCategoryTool(guild), 'high'),
+  createChannel: createTool((guild) => createChannelTool(guild), 'mid'),
+  getChannels: createTool((guild) => getChannelsTool(guild), 'low'),
+  deleteChannel: createTool((guild) => deleteChannelTool(guild), 'high'),
+  renameChannel: createTool((guild) => renameChannelTool(guild), 'mid'),
+  getMembers: createTool((guild) => getMembersTool(guild), 'low'),
+  kickMember: createTool((guild) => kickMemberTool(guild), 'high'),
+  banMember: createTool((guild) => banMemberTool(guild), 'high'),
+  unbanMember: createTool((guild) => unbanMemberTool(guild), 'high'),
+  getUserId: createTool((guild) => getUserIdTool(guild), 'low'),
+  getServerInfo: createTool((guild) => getServerInfoTool(guild), 'low'),
+  setServerName: createTool((guild) => setServerNameTool(guild), 'high'),
+};
+
+export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
+  return { tool, safetyLevel };
 }
-
-export class DiscordToolProvider implements ToolProvider {
-  getTools(ctx: RequestContext): Record<string, AITool> {
-    return discordApiTools(ctx.guild);
-  }
-}
-
-export type BuiltInTools = keyof ReturnType<typeof discordApiTools>;

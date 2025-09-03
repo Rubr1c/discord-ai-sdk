@@ -1,4 +1,8 @@
-import { ErrorReason } from './types';
+
+export const ErrorReason = {
+  RATE_LIMIT: 'Rate Limited',
+  NO_PERMISSION: 'No Permission',
+};
 
 export class AIError extends Error {
   private reason: keyof typeof ErrorReason;

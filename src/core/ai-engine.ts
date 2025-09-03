@@ -1,13 +1,10 @@
 import { generateText, stepCountIs, type LanguageModel } from 'ai';
-import {
-  type LLMResult,
-  type RequestContext,
-  type ToolProvider,
-} from './types';
+import { type LLMResult, type RequestContext } from './types';
 import { RateLimiter } from './rate-limiter';
 import { ToolRegistry } from './tool-registry';
 import { PromptBuilder } from './prompt-builder';
 import { AIError } from './error';
+import { discordApiTools } from '../tools';
 
 export interface AIEngineProps {
   model: LanguageModel;
@@ -25,7 +22,7 @@ export class AIEngine {
     this.config = {
       model: params.model,
       promptBuilder: params.promptBuilder || new PromptBuilder(),
-      toolRegistry: params.toolRegistry || new ToolRegistry(),
+      toolRegistry: params.toolRegistry || new ToolRegistry(discordApiTools),
       rateLimiter: params.rateLimiter || new RateLimiter(3, 60000),
       maxRetries: params.maxRetries || 2,
       maxSteps: params.maxSteps || 5,
@@ -63,7 +60,7 @@ export class AIEngine {
       prompt: prompts.prompt,
       system: prompts.system,
       tools: Object.fromEntries(
-        Object.entries(this.config.toolRegistry.getAllTools(ctx)).map(
+        Object.entries(this.config.toolRegistry.getAllTools()).map(
           ([name, aiTool]) => [name, aiTool.tool(ctx.guild)]
         )
       ),
@@ -107,13 +104,5 @@ export class AIEngine {
     }
 
     return "I received your request but couldn't generate a proper response. Please try rephrasing your request.";
-  }
-
-  public addToolProvider(provider: ToolProvider): void {
-    this.config.toolRegistry.addToolProvider(provider);
-  }
-
-  public removeToolProvider(provider: ToolProvider): boolean {
-    return this.config.toolRegistry.removeToolProvider(provider);
   }
 }

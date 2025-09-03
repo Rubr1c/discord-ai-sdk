@@ -1,10 +1,9 @@
-import type { AITool, ToolProvider, RequestContext } from './types';
+import type { AITool } from './types';
 
 export class ToolRegistry<
   TInitialTools extends Record<string, AITool> = Record<string, AITool>
 > {
   private tools: Record<string, AITool>;
-  private toolProviders: ToolProvider[] = [];
 
   constructor(tools: TInitialTools = {} as TInitialTools) {
     this.tools = tools;
@@ -38,29 +37,8 @@ export class ToolRegistry<
     return this.tools[name];
   }
 
-  public addToolProvider(provider: ToolProvider): void {
-    this.toolProviders.push(provider);
-  }
-
-  public removeToolProvider(provider: ToolProvider): boolean {
-    const index = this.toolProviders.indexOf(provider);
-    if (index > -1) {
-      this.toolProviders.splice(index, 1);
-      return true;
-    }
-    return false;
-  }
-
-  public getAllTools(ctx?: RequestContext): Readonly<Record<string, AITool>> {
+  public getAllTools(): Readonly<Record<string, AITool>> {
     let allTools = { ...this.tools };
-
-    // If context is provided, merge in tools from providers
-    if (ctx) {
-      for (const provider of this.toolProviders) {
-        const providerTools = provider.getTools(ctx);
-        allTools = { ...allTools, ...providerTools };
-      }
-    }
 
     return Object.freeze(allTools);
   }

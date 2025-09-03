@@ -1,16 +1,10 @@
 import type { Tool } from 'ai';
 import type {
-
   Guild,
   GuildMember,
   APIInteractionGuildMember,
   GuildBasedChannel,
 } from 'discord.js';
-
-export const ErrorReason = {
-  RATE_LIMIT: 'Rate Limited',
-  NO_PERMISSION: 'No Permission',
-};
 
 export interface RequestContext {
   guild: Guild;
@@ -33,14 +27,6 @@ export type Safety = 'low' | 'mid' | 'high';
 export interface AITool {
   tool: (guild: Guild) => Tool;
   safetyLevel: Safety;
-}
-
-export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
-  return { tool, safetyLevel };
-}
-
-export interface ToolProvider {
-  getTools(ctx: RequestContext): Record<string, AITool>;
 }
 
 export type BotMode = 'slash' | 'message';
