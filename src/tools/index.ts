@@ -18,7 +18,13 @@ import { getServerInfoTool } from './server/info';
 import { setServerNameTool } from './server/set-name';
 import { getRoleIdTool } from './role/get-id';
 import { getUserIdTool } from './user/get-id';
-import { createTool } from '../core/types';
+import type { Guild } from 'discord.js';
+import type { Safety } from '../core/types';
+import type { Tool } from 'ai';
+
+export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
+  return { tool, safetyLevel };
+}
 
 export const discordApiTools = {
   createRole: createTool((guild) => createRoleTool(guild), 'mid'),
@@ -42,7 +48,3 @@ export const discordApiTools = {
   getServerInfo: createTool((guild) => getServerInfoTool(guild), 'low'),
   setServerName: createTool((guild) => setServerNameTool(guild), 'high'),
 };
-
-export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
-  return { tool, safetyLevel };
-}
