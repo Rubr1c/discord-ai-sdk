@@ -38,10 +38,7 @@ export class AIEngine {
     ctx: RequestContext,
     postProcess = true
   ): Promise<string> {
-    if (
-      ctx.guild.ownerId !== ctx.userId &&
-      this.config.rateLimiter.isRateLimited(ctx.userId)
-    ) {
+    if (await this.config.rateLimiter.isRateLimited(ctx)) {
       throw new AIError('RATE_LIMIT', `User[${ctx.userId}] is rate limited`);
     }
 

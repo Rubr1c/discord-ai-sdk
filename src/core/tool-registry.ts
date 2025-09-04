@@ -50,7 +50,7 @@ export class ToolRegistry<
         : this.safetyModeCap;
 
     if (safetyMode === 'high') return this.getAllTools();
-    
+
     const currentSafetyLevel = SAFETY[safetyMode];
     const availableTools: Record<string, AITool> = {};
 

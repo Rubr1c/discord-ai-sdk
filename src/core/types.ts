@@ -49,4 +49,3 @@ export type BotMode = 'slash' | 'message';
 //   logLevel?: 'debug' | 'info' | 'warn' | 'error';
 //   auditLogging?: boolean | { channelId: string };
 // }
-
