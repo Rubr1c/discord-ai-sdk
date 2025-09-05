@@ -9,9 +9,7 @@ export function getRoleIdTool(guild: Guild): Tool {
       name: z.string().describe('name of target role'),
     }),
     execute: async ({ name }) => {
-      const role = (await guild.roles.fetch()).find(
-        (role) => role.name === name
-      );
+      const role = (await guild.roles.fetch()).find((role) => role.name === name);
 
       return `${name}: ${role?.id}`;
     },

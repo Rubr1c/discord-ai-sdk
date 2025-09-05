@@ -21,17 +21,13 @@ export class PromptBuilder {
     this.systemPrompt = override ? system : this.baseSystemPrompt + system;
   }
 
-  public build(
-    userPrompt: string,
-    ctx: RequestContext
-  ): { system: string; prompt: string } {
+  public build(userPrompt: string, ctx: RequestContext): { system: string; prompt: string } {
     //TODO: Imporve prompt
     return {
       system:
         this.systemPrompt +
         (this.rules.length > 0
-          ? '\nUser-defined rules:\n' +
-            this.rules.map((r) => `- ${r}`).join('\n')
+          ? '\nUser-defined rules:\n' + this.rules.map((r) => `- ${r}`).join('\n')
           : ''),
       prompt: `The user (ID: ${ctx.userId}) in guild "${ctx.guild.name}" said:\n"${userPrompt}"`,
     };

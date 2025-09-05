@@ -9,9 +9,7 @@ export function getUserIdTool(guild: Guild): Tool {
       username: z.string().describe('username of tagert'),
     }),
     execute: async ({ username }) => {
-      const user = (await guild.members.fetch()).find(
-        (mem) => mem.user.username === username
-      );
+      const user = (await guild.members.fetch()).find((mem) => mem.user.username === username);
 
       return `${username}: ${user?.id}`;
     },

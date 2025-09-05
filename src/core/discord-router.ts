@@ -11,6 +11,7 @@ import {
 import { type BotMode, type RequestContext } from './types';
 import { AIError } from './error';
 import { AIEngine } from './ai-engine';
+import { splitMessage } from './utils/message';
 
 export type DiscordRouterProps = {
   mode: BotMode;
@@ -22,8 +23,6 @@ export type DiscordRouterProps = {
 };
 
 export class DiscordRouter {
-  private static readonly DISCORD_MESSAGE_LIMIT = 2000;
-
   private mode: BotMode;
   private activator: string;
   private requiredRoleFn: ((guild: Guild) => Promise<string>) | undefined;
@@ -62,9 +61,7 @@ export class DiscordRouter {
             if (error instanceof AIError) {
               await message.reply(`Error: ${error.message}`);
             } else {
-              await message.reply(
-                'Sorry, I encountered an error while processing your request.'
-              );
+              await message.reply('Sorry, I encountered an error while processing your request.');
             }
           }
         });
@@ -118,17 +115,11 @@ export class DiscordRouter {
 
   private async dispatch(ctx: RequestContext): Promise<string> {
     if (!(await this.hasPermission(ctx))) {
-      throw new AIError(
-        'NO_PERMISSION',
-        `User[${ctx.userId}] has no permission`
-      );
+      throw new AIError('NO_PERMISSION', `User[${ctx.userId}] has no permission`);
     }
 
     if (!(await this.inAllowedChannel(ctx))) {
-      throw new AIError(
-        'NO_PERMISSION',
-        `Channel[${ctx.channel.id}] is not allowed to use this`
-      );
+      throw new AIError('NO_PERMISSION', `Channel[${ctx.channel.id}] is not allowed to use this`);
     }
 
     try {
@@ -171,84 +162,18 @@ export class DiscordRouter {
         typeof ctx.member.permissions === 'object' &&
         'has' in ctx.member.permissions
       ) {
-        return ctx.member.permissions.has(
-          PermissionsBitField.Flags.Administrator
-        );
+        return ctx.member.permissions.has(PermissionsBitField.Flags.Administrator);
       }
       return false;
     }
   }
 
-  private splitMessage(message: string): string[] {
-    if (message.length <= DiscordRouter.DISCORD_MESSAGE_LIMIT) {
-      return [message];
-    }
+  private async sendMessageResponse(message: Message, response: string): Promise<void> {
+    const chunks = splitMessage(response);
 
-    const chunks: string[] = [];
-    let currentChunk = '';
-
-    // Split by lines first to avoid breaking in the middle of sentences
-    const lines = message.split('\n');
-
-    for (const line of lines) {
-      // If a single line is too long, we need to split it by words
-      if (line.length > DiscordRouter.DISCORD_MESSAGE_LIMIT) {
-        // First, add any current chunk if it exists
-        if (currentChunk.trim()) {
-          chunks.push(currentChunk.trim());
-          currentChunk = '';
-        }
-
-        // Split the long line by words
-        const words = line.split(' ');
-        for (const word of words) {
-          if (
-            (currentChunk + word + ' ').length >
-            DiscordRouter.DISCORD_MESSAGE_LIMIT
-          ) {
-            if (currentChunk.trim()) {
-              chunks.push(currentChunk.trim());
-            }
-            currentChunk = word + ' ';
-          } else {
-            currentChunk += word + ' ';
-          }
-        }
-      } else {
-        // Check if adding this line would exceed the limit
-        if (
-          (currentChunk + line + '\n').length >
-          DiscordRouter.DISCORD_MESSAGE_LIMIT
-        ) {
-          if (currentChunk.trim()) {
-            chunks.push(currentChunk.trim());
-          }
-          currentChunk = line + '\n';
-        } else {
-          currentChunk += line + '\n';
-        }
-      }
-    }
-
-    // Add the last chunk if it exists
-    if (currentChunk.trim()) {
-      chunks.push(currentChunk.trim());
-    }
-
-    return chunks.length > 0 ? chunks : [message];
-  }
-
-  private async sendMessageResponse(
-    message: Message,
-    response: string
-  ): Promise<void> {
-    const chunks = this.splitMessage(response);
-
-    // Send the first chunk as a reply
     if (chunks.length > 0 && chunks[0]) {
       await message.reply(chunks[0]);
 
-      // Send additional chunks as follow-up messages
       for (let i = 1; i < chunks.length; i++) {
         const chunk = chunks[i];
         if (chunk && 'send' in message.channel) {
@@ -258,15 +183,11 @@ export class DiscordRouter {
     }
   }
 
-  private async sendInteractionResponse(
-    interaction: Interaction,
-    response: string
-  ): Promise<void> {
+  private async sendInteractionResponse(interaction: Interaction, response: string): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
 
-    const chunks = this.splitMessage(response);
+    const chunks = splitMessage(response);
 
-    // Send the first chunk as the initial reply
     if (chunks.length > 0 && chunks[0]) {
       if (interaction.deferred) {
         await interaction.editReply(chunks[0]);
@@ -277,7 +198,6 @@ export class DiscordRouter {
         });
       }
 
-      // Send additional chunks as follow-up messages
       for (let i = 1; i < chunks.length; i++) {
         const chunk = chunks[i];
         if (chunk) {
@@ -288,8 +208,7 @@ export class DiscordRouter {
         }
       }
     } else {
-      const fallback =
-        "I received your request but couldn't generate a proper response.";
+      const fallback = "I received your request but couldn't generate a proper response.";
       if (interaction.deferred) {
         await interaction.editReply(fallback);
       } else {
@@ -309,7 +228,7 @@ export class DiscordRouter {
         option
           .setName('prompt')
           .setDescription('What you want the AI to help with')
-          .setRequired(true)
+          .setRequired(true),
       );
 
     client.once(Events.ClientReady, async () => {
@@ -328,7 +247,6 @@ export class DiscordRouter {
       try {
         const ctx = this.buildContext(interaction);
 
-        // Defer the reply since AI processing might take time
         await interaction.deferReply({ ephemeral: this.ephemeralReplies });
 
         const response = await this.dispatch(ctx);

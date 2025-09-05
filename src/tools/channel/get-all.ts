@@ -8,7 +8,7 @@ export function getChannelsTool(guild: Guild): Tool {
     inputSchema: z.object(),
     execute: async () => {
       const channels = (await guild.channels.fetch()).filter(
-        (channel) => channel?.type == ChannelType.GuildText
+        (channel) => channel?.type == ChannelType.GuildText,
       );
 
       const channelList = channels.map((channel) => ({
@@ -18,12 +18,10 @@ export function getChannelsTool(guild: Guild): Tool {
         parent: channel?.parent,
       }));
 
-      return `Found ${
-        channelList.length
-      } channels in this server:\n${channelList
+      return `Found ${channelList.length} channels in this server:\n${channelList
         .map(
           (chan) =>
-            `- [parent:${chan.parent} - POS #${chan.position}]${chan.name} (ID: ${chan.id})`
+            `- [parent:${chan.parent} - POS #${chan.position}]${chan.name} (ID: ${chan.id})`,
         )
         .join('\n')}`;
     },

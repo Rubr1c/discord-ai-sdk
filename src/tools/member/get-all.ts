@@ -18,9 +18,7 @@ export function getMembersTool(guild: Guild): Tool {
       }
 
       return `Found ${members.length} members:\n${members
-        .map(
-          (mem) => `${mem.bot ? '[BOT] ' : ''}${mem.username} (ID: ${mem.id})`
-        )
+        .map((mem) => `${mem.bot ? '[BOT] ' : ''}${mem.username} (ID: ${mem.id})`)
         .join('\n')}`;
     },
   });

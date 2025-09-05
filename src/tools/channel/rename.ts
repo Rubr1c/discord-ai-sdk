@@ -11,9 +11,7 @@ export function renameChannelTool(guild: Guild): Tool {
         .string()
         .min(1, 'Channel name cannot be empty')
         .max(100, 'Channel name too long')
-        .describe(
-          'Channel name (lowercase, no spaces, use dashes between words)'
-        ),
+        .describe('Channel name (lowercase, no spaces, use dashes between words)'),
     }),
     execute: async ({ id, new_name }) => {
       const channelName = new_name

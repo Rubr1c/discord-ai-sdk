@@ -1,10 +1,5 @@
 import type { Tool } from 'ai';
-import type {
-  Guild,
-  GuildMember,
-  APIInteractionGuildMember,
-  GuildBasedChannel,
-} from 'discord.js';
+import type { Guild, GuildMember, APIInteractionGuildMember, GuildBasedChannel } from 'discord.js';
 
 export interface RequestContext {
   guild: Guild;
@@ -12,14 +7,6 @@ export interface RequestContext {
   userId: string;
   content: string;
   member: GuildMember | APIInteractionGuildMember | null;
-}
-
-export interface LLMResult {
-  text: string;
-  toolResults?: {
-    toolName: string;
-    result: any;
-  }[];
 }
 
 export const SAFETY = {
@@ -36,16 +23,3 @@ export interface AITool {
 }
 
 export type BotMode = 'slash' | 'message';
-
-// export interface BotConfig {
-//   client: Client;
-//   mode: BotMode;
-//   activator: string;
-//   requiredRole?: string;
-//   ephemeralReplies?: boolean;
-//   rateLimitCount?: number;
-//   rateLimitWindowMs?: number;
-//   allowedChannels?: string[];
-//   logLevel?: 'debug' | 'info' | 'warn' | 'error';
-//   auditLogging?: boolean | { channelId: string };
-// }

@@ -3,9 +3,7 @@ import { SAFETY } from './types';
 import type { RequestContext } from './types';
 import type { Guild } from 'discord.js';
 
-export class ToolRegistry<
-  TInitialTools extends Record<string, AITool> = Record<string, AITool>
-> {
+export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<string, AITool>> {
   private tools: Record<string, AITool>;
   private safetyModeCap: ((guild: Guild) => Promise<Safety>) | Safety = 'high';
 
@@ -42,7 +40,7 @@ export class ToolRegistry<
   }
 
   public async getAllAvailableTools(
-    ctx: RequestContext
+    ctx: RequestContext,
   ): Promise<Readonly<Record<string, AITool>>> {
     const safetyMode =
       typeof this.safetyModeCap === 'function'

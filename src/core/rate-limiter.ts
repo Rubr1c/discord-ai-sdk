@@ -6,20 +6,14 @@ export interface RateLimitOpts {
   windowMs: number;
 }
 
-export type RateLimitFn =
-  | ((userId: string, guild: Guild) => Promise<RateLimitOpts>)
-  | undefined;
+export type RateLimitFn = ((userId: string, guild: Guild) => Promise<RateLimitOpts>) | undefined;
 
 export class RateLimiter {
   private opts: RateLimitOpts;
   private readonly requestTimestamps = new Map<string, number[]>();
   private customRateLimits: RateLimitFn;
 
-  constructor(
-    limitCount: number,
-    windowMs: number,
-    customRateLimits?: RateLimitFn
-  ) {
+  constructor(limitCount: number, windowMs: number, customRateLimits?: RateLimitFn) {
     this.opts = { limitCount, windowMs };
     this.customRateLimits = customRateLimits;
   }
@@ -27,7 +21,7 @@ export class RateLimiter {
   public async isRateLimited(ctx: RequestContext): Promise<boolean> {
     const rate = this.customRateLimits
       ? await this.customRateLimits(ctx.userId, ctx.guild)
-      : { windowMs: this.opts.windowMs, limitCount: this.opts.limitCount };
+      : this.opts;
 
     const now = Date.now();
     const startWindow = now - rate.windowMs;
@@ -35,9 +29,7 @@ export class RateLimiter {
     const scopeTimestamps = this.requestTimestamps.get(ctx.userId) ?? [];
 
     // Clean old timestamps to prevent memory bloat
-    const recentTimestamps = scopeTimestamps.filter(
-      (timestamp) => timestamp > startWindow
-    );
+    const recentTimestamps = scopeTimestamps.filter((timestamp) => timestamp > startWindow);
 
     if (recentTimestamps.length >= rate.limitCount) {
       // Update with cleaned timestamps even when rate limited

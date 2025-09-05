@@ -8,9 +8,7 @@ export function getCategoriesTool(guild: Guild): Tool {
     inputSchema: z.object(),
     execute: async () => {
       const channels = await guild.channels.fetch();
-      const categories = channels.filter(
-        (channel) => channel?.type == ChannelType.GuildCategory
-      );
+      const categories = channels.filter((channel) => channel?.type == ChannelType.GuildCategory);
 
       const categoryList = categories.map((category) => ({
         id: category?.id,
@@ -18,9 +16,7 @@ export function getCategoriesTool(guild: Guild): Tool {
         position: category?.position,
       }));
 
-      return `Found ${
-        categoryList.length
-      } categories in this server:\n${categoryList
+      return `Found ${categoryList.length} categories in this server:\n${categoryList
         .map((cat) => `- ${cat.name} (ID: ${cat.id})`)
         .join('\n')}`;
     },

@@ -10,7 +10,7 @@ export function unbanMemberTool(guild: Guild): Tool {
       reason: z.string().nullable().describe('reason for unban'),
     }),
     execute: async ({ user_id, reason }) => {
-      await guild.members.unban(user_id, reason || "No Reason Provided");
+      await guild.members.unban(user_id, reason || 'No Reason Provided');
 
       return `Unbanned user ${user_id}`;
     },

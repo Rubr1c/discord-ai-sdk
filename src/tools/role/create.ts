@@ -10,10 +10,7 @@ const PermissionSchema = z
       .optional()
       .describe('Full admin access (overrides all other permissions)'),
     manageGuild: z.boolean().optional().describe('Manage server settings'),
-    manageRoles: z
-      .boolean()
-      .optional()
-      .describe('Manage roles and permissions'),
+    manageRoles: z.boolean().optional().describe('Manage roles and permissions'),
     manageChannels: z.boolean().optional().describe('Manage channels'),
     kickMembers: z.boolean().optional().describe('Kick members'),
     banMembers: z.boolean().optional().describe('Ban members'),
@@ -22,23 +19,17 @@ const PermissionSchema = z
     viewAuditLog: z.boolean().optional().describe('View audit logs'),
     sendMessages: z.boolean().optional().describe('Send messages in channels'),
     manageNicknames: z.boolean().optional().describe('Change others nicknames'),
-    mentionEveryone: z
-      .boolean()
-      .optional()
-      .describe('Mention @everyone and @here'),
+    mentionEveryone: z.boolean().optional().describe('Mention @everyone and @here'),
     useSlashCommands: z.boolean().optional().describe('Use slash commands'),
     connect: z.boolean().optional().describe('Connect to voice channels'),
     speak: z.boolean().optional().describe('Speak in voice channels'),
     muteMembers: z.boolean().optional().describe('Mute members in voice'),
     deafenMembers: z.boolean().optional().describe('Deafen members in voice'),
-    moveMembers: z
-      .boolean()
-      .optional()
-      .describe('Move members between voice channels'),
+    moveMembers: z.boolean().optional().describe('Move members between voice channels'),
   })
   .optional()
   .describe(
-    'Role permissions - set administrator: true for admin roles, or specify individual permissions. If not provided, creates a basic role with no special permissions.'
+    'Role permissions - set administrator: true for admin roles, or specify individual permissions. If not provided, creates a basic role with no special permissions.',
   );
 
 export function createRoleTool(guild: Guild): Tool {
@@ -52,9 +43,7 @@ export function createRoleTool(guild: Guild): Tool {
         .regex(/^[0-9A-Fa-f]{6}$/)
         .nullable()
         .default('5865F2')
-        .describe(
-          'role color in hex format like ff0000 for red (defaults to Discord blue)'
-        ),
+        .describe('role color in hex format like ff0000 for red (defaults to Discord blue)'),
       mentionable: z
         .boolean()
         .default(true)

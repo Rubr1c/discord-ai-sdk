@@ -16,10 +16,7 @@ export function getRolesTool(guild: Guild): Tool {
       }));
 
       return `Found ${roleList.length} roles in this server:\n${roleList
-        .map(
-          (role) =>
-            `- ${role.name} [${role.colors.primaryColor}] (ID: ${role.id})`
-        )
+        .map((role) => `- ${role.name} [${role.colors.primaryColor}] (ID: ${role.id})`)
         .join('\n')}`;
     },
   });

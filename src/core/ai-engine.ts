@@ -1,5 +1,5 @@
 import { generateText, stepCountIs, type LanguageModel } from 'ai';
-import { type LLMResult, type RequestContext } from './types';
+import { type RequestContext } from './types';
 import { RateLimiter } from './rate-limiter';
 import { ToolRegistry } from './tool-registry';
 import { PromptBuilder } from './prompt-builder';
@@ -17,28 +17,41 @@ export interface AIEngineProps {
   maxTokens?: number;
 }
 
-export class AIEngine {
-  private config: Required<AIEngineProps>;
+export interface LLMResult {
+  text: string;
+  toolResults?: {
+    toolName: string;
+    result: any;
+  }[];
+}
 
-  constructor({ ...params }: AIEngineProps) {
+export class AIEngine {
+  private model: LanguageModel;
+  private promptBuilder: PromptBuilder;
+  private toolRegistry: ToolRegistry;
+  private rateLimiter: RateLimiter;
+  private config: {
+    maxRetries: number;
+    maxSteps: number;
+    temperature: number;
+    maxTokens: number;
+  };
+
+  constructor(params: AIEngineProps) {
+    this.model = params.model;
+    this.promptBuilder = params.promptBuilder || new PromptBuilder();
+    this.toolRegistry = params.toolRegistry || new ToolRegistry(discordApiTools);
+    this.rateLimiter = params.rateLimiter || new RateLimiter(3, 60000);
     this.config = {
-      model: params.model,
-      promptBuilder: params.promptBuilder || new PromptBuilder(),
-      toolRegistry: params.toolRegistry || new ToolRegistry(discordApiTools),
-      rateLimiter: params.rateLimiter || new RateLimiter(3, 60000),
-      maxRetries: params.maxRetries || 2,
-      maxSteps: params.maxSteps || 5,
-      temperature: params.temperature || 0,
-      maxTokens: params.maxTokens || 400,
+      maxRetries: params.maxRetries ?? 2,
+      maxSteps: params.maxSteps ?? 5,
+      temperature: params.temperature ?? 0,
+      maxTokens: params.maxTokens ?? 400,
     };
   }
 
-  public async handle(
-    prompt: string,
-    ctx: RequestContext,
-    postProcess = true
-  ): Promise<string> {
-    if (await this.config.rateLimiter.isRateLimited(ctx)) {
+  public async handle(prompt: string, ctx: RequestContext, postProcess = true): Promise<string> {
+    if (await this.rateLimiter.isRateLimited(ctx)) {
       throw new AIError('RATE_LIMIT', `User[${ctx.userId}] is rate limited`);
     }
 
@@ -50,20 +63,18 @@ export class AIEngine {
     return res.text;
   }
 
-  public async callModel(
-    prompt: string,
-    ctx: RequestContext
-  ): Promise<LLMResult> {
-    const prompts = this.config.promptBuilder.build(prompt, ctx);
+  public async callModel(prompt: string, ctx: RequestContext): Promise<LLMResult> {
+    const prompts = this.promptBuilder.build(prompt, ctx);
 
     const result = await generateText({
-      model: this.config.model,
+      model: this.model,
       prompt: prompts.prompt,
       system: prompts.system,
       tools: Object.fromEntries(
-        Object.entries(
-          await this.config.toolRegistry.getAllAvailableTools(ctx)
-        ).map(([name, aiTool]) => [name, aiTool.tool(ctx.guild)])
+        Object.entries(await this.toolRegistry.getAllAvailableTools(ctx)).map(([name, aiTool]) => [
+          name,
+          aiTool.tool(ctx.guild),
+        ]),
       ),
       maxRetries: this.config.maxRetries,
       stopWhen: stepCountIs(this.config.maxSteps),
@@ -95,9 +106,7 @@ export class AIEngine {
             'Tool executed successfully';
 
           const formattedResult =
-            typeof resultValue === 'string'
-              ? resultValue
-              : JSON.stringify(resultValue);
+            typeof resultValue === 'string' ? resultValue : JSON.stringify(resultValue);
 
           return `✅ **${toolResult.toolName}**: ${formattedResult}`;
         })

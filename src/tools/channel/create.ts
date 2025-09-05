@@ -11,14 +11,12 @@ export function createChannelTool(guild: Guild): Tool {
         .string()
         .min(1, 'Channel name cannot be empty')
         .max(100, 'Channel name too long')
-        .describe(
-          'Channel name (lowercase, no spaces, use dashes between words)'
-        ),
+        .describe('Channel name (lowercase, no spaces, use dashes between words)'),
       category: z
         .string()
         .nullable()
         .describe(
-          'Category ID where the channel should be created. Use the ID from getCategories tool output.'
+          'Category ID where the channel should be created. Use the ID from getCategories tool output.',
         ),
     }),
     execute: async ({ channelName, category }) => {
