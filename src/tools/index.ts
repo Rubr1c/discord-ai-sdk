@@ -21,30 +21,36 @@ import { getUserIdTool } from './user/get-id';
 import type { Guild } from 'discord.js';
 import type { Safety } from '../core/types';
 import type { Tool } from 'ai';
+import { timeoutMemberTool } from './member/timeout';
+import { untimeoutMemberTool } from './member/untimeout';
+import { getEmojisTool } from './server/emojis';
 
 export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
   return { tool, safetyLevel };
 }
 
 export const discordApiTools = {
-  createRole: createTool((guild) => createRoleTool(guild), 'mid'),
-  getRoles: createTool((guild) => getRolesTool(guild), 'low'),
-  deleteRole: createTool((guild) => deleteRoleTool(guild), 'high'),
-  assignRole: createTool((guild) => assignRoleTool(guild), 'high'),
-  removeRole: createTool((guild) => removeRoleTool(guild), 'high'),
-  getRoleId: createTool((guild) => getRoleIdTool(guild), 'low'),
-  createCategory: createTool((guild) => createCategoryTool(guild), 'mid'),
-  getCategories: createTool((guild) => getCategoriesTool(guild), 'low'),
-  deleteCategory: createTool((guild) => deleteCategoryTool(guild), 'high'),
-  createChannel: createTool((guild) => createChannelTool(guild), 'mid'),
-  getChannels: createTool((guild) => getChannelsTool(guild), 'low'),
-  deleteChannel: createTool((guild) => deleteChannelTool(guild), 'high'),
-  renameChannel: createTool((guild) => renameChannelTool(guild), 'mid'),
-  getMembers: createTool((guild) => getMembersTool(guild), 'low'),
-  kickMember: createTool((guild) => kickMemberTool(guild), 'high'),
-  banMember: createTool((guild) => banMemberTool(guild), 'high'),
-  unbanMember: createTool((guild) => unbanMemberTool(guild), 'high'),
-  getUserId: createTool((guild) => getUserIdTool(guild), 'low'),
-  getServerInfo: createTool((guild) => getServerInfoTool(guild), 'low'),
-  setServerName: createTool((guild) => setServerNameTool(guild), 'high'),
+  createRole: createTool(createRoleTool, 'mid'),
+  getRoles: createTool(getRolesTool, 'low'),
+  deleteRole: createTool(deleteRoleTool, 'high'),
+  assignRole: createTool(assignRoleTool, 'high'),
+  removeRole: createTool(removeRoleTool, 'high'),
+  getRoleId: createTool(getRoleIdTool, 'low'),
+  createCategory: createTool(createCategoryTool, 'mid'),
+  getCategories: createTool(getCategoriesTool, 'low'),
+  deleteCategory: createTool(deleteCategoryTool, 'high'),
+  createChannel: createTool(createChannelTool, 'mid'),
+  getChannels: createTool(getChannelsTool, 'low'),
+  deleteChannel: createTool(deleteChannelTool, 'high'),
+  renameChannel: createTool(renameChannelTool, 'mid'),
+  getMembers: createTool(getMembersTool, 'low'),
+  kickMember: createTool(kickMemberTool, 'high'),
+  banMember: createTool(banMemberTool, 'high'),
+  unbanMember: createTool(unbanMemberTool, 'high'),
+  timeoutMember: createTool(timeoutMemberTool, 'mid'),
+  untimeoutMember: createTool(untimeoutMemberTool, 'mid'),
+  getUserId: createTool(getUserIdTool, 'low'),
+  getServerInfo: createTool(getServerInfoTool, 'low'),
+  setServerName: createTool(setServerNameTool, 'high'),
+  getEmojis: createTool(getEmojisTool, 'low'),
 };
