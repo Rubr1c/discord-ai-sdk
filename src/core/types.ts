@@ -23,3 +23,18 @@ export interface AITool {
 }
 
 export type BotMode = 'slash' | 'message';
+
+export interface Logger {
+  debug(message: string, meta?: unknown): void;
+  info(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  error(message: string | Error, meta?: unknown): void;
+}
+
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export const LOG_LEVEL_ORDER = {
+  debug: 10,
+  info: 20,
+  warn: 30,
+  error: 40,
+} as const;

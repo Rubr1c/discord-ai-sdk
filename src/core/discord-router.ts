@@ -8,10 +8,11 @@ import {
   type GuildBasedChannel,
   type Interaction,
 } from 'discord.js';
-import { type BotMode, type RequestContext } from './types';
+import { type BotMode, type Logger, type RequestContext } from './types';
 import { AIError } from './error';
 import { AIEngine } from './ai-engine';
 import { splitMessage } from './utils/message';
+import { ConsoleLogger } from './console-logger';
 
 export type DiscordRouterProps = {
   mode: BotMode;
@@ -20,6 +21,7 @@ export type DiscordRouterProps = {
   requiredRoleFn?: (guild: Guild) => Promise<string>;
   allowedChannelsFn?: (guild: Guild) => Promise<string[]>;
   ephemeralReplies?: boolean;
+  logger?: Logger;
 };
 
 export class DiscordRouter {
@@ -29,6 +31,7 @@ export class DiscordRouter {
   private allowedChannelsFn: ((guild: Guild) => Promise<string[]>) | undefined;
   private ephemeralReplies: boolean;
   private engine: AIEngine;
+  private logger: Logger;
 
   constructor({
     mode,
@@ -37,6 +40,7 @@ export class DiscordRouter {
     requiredRoleFn,
     allowedChannelsFn,
     ephemeralReplies,
+    logger,
   }: DiscordRouterProps) {
     this.mode = mode;
     this.activator = activator;
@@ -44,9 +48,11 @@ export class DiscordRouter {
     this.allowedChannelsFn = allowedChannelsFn;
     this.ephemeralReplies = ephemeralReplies ?? false;
     this.engine = engine;
+    this.logger = logger ?? new ConsoleLogger();
   }
 
   public subscribe(client: Client): void {
+    this.logger.info('DiscordRouter.subscribe', { mode: this.mode, activator: this.activator });
     switch (this.mode) {
       case 'message':
         client.on(Events.MessageCreate, async (message: Message) => {
@@ -57,7 +63,7 @@ export class DiscordRouter {
             const response = await this.dispatch(ctx);
             await this.sendMessageResponse(message, response);
           } catch (error) {
-            console.error('Error handling message:', error);
+            this.logger.error('Error handling message:', error as Error);
             if (error instanceof AIError) {
               await message.reply(`Error: ${error.message}`);
             } else {
@@ -77,16 +83,13 @@ export class DiscordRouter {
     if (!event.channel || !event.channel.isTextBased())
       throw new Error('Channel is not text-based');
 
-    // Ensure it's a guild-based channel (not DM)
     const channel = event.channel;
     if (!('guild' in channel) || !channel.guild) {
       throw new Error('Channel is not guild-based');
     }
 
-    // Check if it's a message by looking for message-specific properties
     if ('author' in event && 'content' in event) {
-      // This is a Message
-      const message = event as Message;
+      const message = event;
       return {
         guild: message.guild!,
         channel: channel as GuildBasedChannel,
@@ -95,8 +98,7 @@ export class DiscordRouter {
         member: message.member,
       };
     } else if ('user' in event) {
-      // This is an Interaction
-      const interaction = event as Interaction;
+      const interaction = event;
       const prompt = interaction.isChatInputCommand()
         ? interaction.options.getString('prompt') || ''
         : '';
@@ -114,6 +116,7 @@ export class DiscordRouter {
   }
 
   private async dispatch(ctx: RequestContext): Promise<string> {
+    this.logger.debug('DiscordRouter.dispatch', { userId: ctx.userId, guildId: ctx.guild.id });
     if (!(await this.hasPermission(ctx))) {
       throw new AIError('NO_PERMISSION', `User[${ctx.userId}] has no permission`);
     }
@@ -126,7 +129,7 @@ export class DiscordRouter {
       const response = await this.engine.handle(ctx.content, ctx);
       return response;
     } catch (err) {
-      console.error(err);
+      this.logger.error('DiscordRouter.dispatch error', err as Error);
       if (err instanceof AIError) {
         return `Error: ${err.message}`;
       } else {
@@ -234,9 +237,9 @@ export class DiscordRouter {
     client.once(Events.ClientReady, async () => {
       try {
         await client.application?.commands.create(cmd);
-        console.log('AI Command Created');
+        this.logger.info('Slash command created');
       } catch (error) {
-        console.error('Failed to register slash command:', error);
+        this.logger.error('Failed to register slash command:', error as Error);
       }
     });
 
@@ -252,7 +255,7 @@ export class DiscordRouter {
         const response = await this.dispatch(ctx);
         await this.sendInteractionResponse(interaction, response);
       } catch (error) {
-        console.error('Error handling slash command:', error);
+        this.logger.error('Error handling slash command:', error as Error);
 
         const errorMsg =
           error instanceof AIError
@@ -269,7 +272,7 @@ export class DiscordRouter {
             });
           }
         } catch (replyError) {
-          console.error('Failed to send error response:', replyError);
+          this.logger.error('Failed to send error response:', replyError as Error);
         }
       }
     });

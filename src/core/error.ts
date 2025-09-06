@@ -1,6 +1,10 @@
 export const ErrorReason = {
   RATE_LIMIT: 'Rate Limited',
   NO_PERMISSION: 'No Permission',
+  INVALID_INPUT: 'Invalid Input',
+  MODEL_ERROR: 'Model Error',
+  TOOL_ERROR: 'Tool Error',
+  INTERNAL_ERROR: 'Internal Error',
 };
 
 export class AIError extends Error {

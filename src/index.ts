@@ -3,6 +3,7 @@ export { DiscordRouter } from './core/discord-router';
 export { PromptBuilder } from './core/prompt-builder';
 export { RateLimiter } from './core/rate-limiter';
 export { ToolRegistry } from './core/tool-registry';
+export type { ToolRegistryProps } from './core/tool-registry';
 export { AIError, ErrorReason } from './core/error';
 
 export type { AITool, RequestContext, Safety, BotMode } from './core/types';

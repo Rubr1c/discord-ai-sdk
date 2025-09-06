@@ -1,4 +1,5 @@
-import type { RequestContext } from './types';
+import type { Logger, RequestContext } from './types';
+import { ConsoleLogger } from './console-logger';
 
 export class PromptBuilder {
   private readonly baseSystemPrompt: string = `
@@ -16,13 +17,15 @@ export class PromptBuilder {
   private systemPrompt: string;
 
   private rules: string[] = [];
+  private logger: Logger;
 
-  constructor(system: string = '', override = false) {
+  constructor(system: string = '', override = false, logger: Logger = new ConsoleLogger()) {
     this.systemPrompt = override ? system : this.baseSystemPrompt + system;
+    this.logger = logger;
   }
 
   public build(userPrompt: string, ctx: RequestContext): { system: string; prompt: string } {
-    //TODO: Imporve prompt
+    this.logger.debug('PromptBuilder.build', { userId: ctx.userId, guildId: ctx.guild.id });
     return {
       system:
         this.systemPrompt +
@@ -35,17 +38,21 @@ export class PromptBuilder {
 
   public addRule(rule: string) {
     this.rules.push(rule);
+    this.logger.info('PromptBuilder.addRule', { rule });
   }
 
   public removeRule(rule: string) {
     this.rules = this.rules.filter((r) => r != rule);
+    this.logger.info('PromptBuilder.removeRule', { rule });
   }
 
   public override(system: string): void {
     this.systemPrompt = system;
+    this.logger.warn('PromptBuilder.override used');
   }
 
   public resetRules(): void {
     this.rules = [];
+    this.logger.info('PromptBuilder.resetRules');
   }
 }

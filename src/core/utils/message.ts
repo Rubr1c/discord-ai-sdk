@@ -1,4 +1,4 @@
-const DISCORD_MESSAGE_LIMIT = 2000;
+export const DISCORD_MESSAGE_LIMIT = 2000;
 
 export function splitMessage(message: string): string[] {
   if (message.length <= DISCORD_MESSAGE_LIMIT) {

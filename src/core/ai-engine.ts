@@ -1,10 +1,11 @@
 import { generateText, stepCountIs, type LanguageModel } from 'ai';
-import { type RequestContext } from './types';
+import { type Logger, type RequestContext } from './types';
 import { RateLimiter } from './rate-limiter';
 import { ToolRegistry } from './tool-registry';
 import { PromptBuilder } from './prompt-builder';
 import { AIError } from './error';
 import { discordApiTools } from '../tools';
+import { ConsoleLogger } from './console-logger';
 
 export interface AIEngineProps {
   model: LanguageModel;
@@ -15,6 +16,7 @@ export interface AIEngineProps {
   maxRetries?: number;
   temperature?: number;
   maxTokens?: number;
+  logger?: Logger;
 }
 
 export interface LLMResult {
@@ -30,6 +32,7 @@ export class AIEngine {
   private promptBuilder: PromptBuilder;
   private toolRegistry: ToolRegistry;
   private rateLimiter: RateLimiter;
+  private logger: Logger;
   private config: {
     maxRetries: number;
     maxSteps: number;
@@ -39,9 +42,16 @@ export class AIEngine {
 
   constructor(params: AIEngineProps) {
     this.model = params.model;
-    this.promptBuilder = params.promptBuilder || new PromptBuilder();
-    this.toolRegistry = params.toolRegistry || new ToolRegistry(discordApiTools);
-    this.rateLimiter = params.rateLimiter || new RateLimiter(3, 60000);
+    this.promptBuilder =
+      params.promptBuilder || new PromptBuilder('', false, params.logger ?? new ConsoleLogger());
+    this.toolRegistry =
+      params.toolRegistry ||
+      new ToolRegistry({
+        tools: discordApiTools,
+        ...(params.logger ? { logger: params.logger } : {}),
+      });
+    this.rateLimiter = params.rateLimiter || new RateLimiter({ limitCount: 3, windowMs: 60000 });
+    this.logger = params.logger ?? new ConsoleLogger();
     this.config = {
       maxRetries: params.maxRetries ?? 2,
       maxSteps: params.maxSteps ?? 5,
@@ -51,14 +61,19 @@ export class AIEngine {
   }
 
   public async handle(prompt: string, ctx: RequestContext, postProcess = true): Promise<string> {
+    this.logger.debug('AIEngine.handle invoked', { userId: ctx.userId, guildId: ctx.guild.id });
     if (await this.rateLimiter.isRateLimited(ctx)) {
-      throw new AIError('RATE_LIMIT', `User[${ctx.userId}] is rate limited`);
+      const err = new AIError('RATE_LIMIT', `User[${ctx.userId}] is rate limited`);
+      this.logger.warn('Rate limited request', { userId: ctx.userId, guildId: ctx.guild.id });
+      throw err;
     }
 
     const res = await this.callModel(prompt, ctx);
 
     if (postProcess) {
-      return this.postProcess(res);
+      const text = this.postProcess(res);
+      this.logger.debug('AIEngine.postProcess completed');
+      return text;
     }
     return res.text;
   }
@@ -81,6 +96,8 @@ export class AIEngine {
       temperature: this.config.temperature,
       maxOutputTokens: this.config.maxTokens,
     });
+
+    this.logger.info('AIEngine.callModel completed', { toolResults: !!result.toolResults });
 
     return {
       text: result.text,
@@ -108,7 +125,7 @@ export class AIEngine {
           const formattedResult =
             typeof resultValue === 'string' ? resultValue : JSON.stringify(resultValue);
 
-          return `✅ **${toolResult.toolName}**: ${formattedResult}`;
+          return `**${toolResult.toolName}**: ${formattedResult}`;
         })
         .join('\n\n');
 
