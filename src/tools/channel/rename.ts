@@ -6,25 +6,25 @@ export function renameChannelTool(guild: Guild): Tool {
   return tool({
     description: 'rename a channel',
     inputSchema: z.object({
-      id: z.string().describe('channel id'),
-      new_name: z
+      channelId: z.string().describe('channel id'),
+      newName: z
         .string()
         .min(1, 'Channel name cannot be empty')
         .max(100, 'Channel name too long')
         .describe('Channel name (lowercase, no spaces, use dashes between words)'),
     }),
-    execute: async ({ id, new_name }) => {
-      const channelName = new_name
+    execute: async ({ channelId, newName }) => {
+      const channelName = newName
         .toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9\-_]/g, '')
         .replace(/^-+|-+$/g, '');
 
-      const channel = await guild.channels.fetch(id);
+      const channel = await guild.channels.fetch(channelId);
 
       await channel?.edit({ name: channelName });
 
-      return `Edited channel name of channel [${id}] to ${channelName}`;
+      return `Edited channel name of channel [${channelId}] to ${channelName}`;
     },
   });
 }

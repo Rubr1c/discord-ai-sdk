@@ -24,6 +24,8 @@ import type { Tool } from 'ai';
 import { timeoutMemberTool } from './member/timeout';
 import { untimeoutMemberTool } from './member/untimeout';
 import { getEmojisTool } from './server/emojis';
+import { getStickersTool } from './server/stickers';
+import { moveChannelTool } from './channel/move';
 
 export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
   return { tool, safetyLevel };
@@ -43,6 +45,7 @@ export const discordApiTools = {
   getChannels: createTool(getChannelsTool, 'low'),
   deleteChannel: createTool(deleteChannelTool, 'high'),
   renameChannel: createTool(renameChannelTool, 'mid'),
+  moveChannel: createTool(moveChannelTool, 'mid'),
   getMembers: createTool(getMembersTool, 'low'),
   kickMember: createTool(kickMemberTool, 'high'),
   banMember: createTool(banMemberTool, 'high'),
@@ -53,4 +56,5 @@ export const discordApiTools = {
   getServerInfo: createTool(getServerInfoTool, 'low'),
   setServerName: createTool(setServerNameTool, 'high'),
   getEmojis: createTool(getEmojisTool, 'low'),
+  getStickers: createTool(getStickersTool, 'low'),
 };
