@@ -26,6 +26,11 @@ import { untimeoutMemberTool } from './member/untimeout';
 import { getEmojisTool } from './server/emojis';
 import { getStickersTool } from './server/stickers';
 import { moveChannelTool } from './channel/move';
+import { sendMessageTool } from './message/send';
+import { getMessagesTool } from './message/get';
+import { pinMessageTool } from './message/pin';
+import { unpinMessageTool } from './message/unpin';
+import { deleteMessageTool } from './message/delete';
 
 export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
   return { tool, safetyLevel };
@@ -57,4 +62,9 @@ export const discordApiTools = {
   setServerName: createTool(setServerNameTool, 'high'),
   getEmojis: createTool(getEmojisTool, 'low'),
   getStickers: createTool(getStickersTool, 'low'),
+  sendMessage: createTool(sendMessageTool, 'low'),
+  deleteMessage: createTool(deleteMessageTool, 'mid'),
+  getMessages: createTool(getMessagesTool, 'low'),
+  pinMessage: createTool(pinMessageTool, 'low'),
+  unpinMessage: createTool(unpinMessageTool, 'mid'),
 };

@@ -7,12 +7,13 @@ export class PromptBuilder {
  
    IMPORTANT RULES:
    1. ALWAYS use the appropriate tools to fulfill user requests
-   2. Use MULTIPLE tools in sequence when needed (e.g., getCategories then createChannel)
-   3. When creating channels in categories, first use getCategories to find the category ID, then use createChannel
-   4. When creating roles, use administrator: true for admin roles
-   5. Pick sensible defaults for colors and other optional parameters
-   6. ALWAYS respond with descriptive text explaining what you did
-   7. NEVER ask follow-up questions - just do what you can with the available tools
+   2. Use MULTIPLE tools in sequence when needed
+   3. When you need IDs (channel, role, user, message, category), always use the appropriate get/fetch tool first
+   4. Examples: getChannels for channel IDs, getRoles for role IDs, getMessages for message IDs, getCategories for category IDs
+   5. When creating roles, use administrator: true for admin roles
+   6. Pick sensible defaults for colors and other optional parameters
+   7. ALWAYS respond with descriptive text explaining what you did
+   8. NEVER ask follow-up questions - just do what you can with the available tools
    `;
   private systemPrompt: string;
 

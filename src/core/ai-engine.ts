@@ -81,34 +81,50 @@ export class AIEngine {
   public async callModel(prompt: string, ctx: RequestContext): Promise<LLMResult> {
     const prompts = this.promptBuilder.build(prompt, ctx);
 
-    const result = await generateText({
-      model: this.model,
-      prompt: prompts.prompt,
-      system: prompts.system,
-      tools: Object.fromEntries(
-        Object.entries(await this.toolRegistry.getAllAvailableTools(ctx)).map(([name, aiTool]) => [
-          name,
-          aiTool.tool(ctx.guild),
-        ]),
-      ),
-      maxRetries: this.config.maxRetries,
-      stopWhen: stepCountIs(this.config.maxSteps),
-      temperature: this.config.temperature,
-      maxOutputTokens: this.config.maxTokens,
-    });
+    try {
+      const result = await generateText({
+        model: this.model,
+        prompt: prompts.prompt,
+        system: prompts.system,
+        tools: Object.fromEntries(
+          Object.entries(await this.toolRegistry.getAllAvailableTools(ctx)).map(
+            ([name, aiTool]) => [name, aiTool.tool(ctx.guild)],
+          ),
+        ),
+        maxRetries: this.config.maxRetries,
+        stopWhen: stepCountIs(this.config.maxSteps),
+        temperature: this.config.temperature,
+        maxOutputTokens: this.config.maxTokens,
+      });
 
-    this.logger.info('AIEngine.callModel completed', { toolResults: !!result.toolResults });
+      this.logger.info('AIEngine.callModel completed', {
+        toolResults: !!result.toolResults,
+        toolCount: result.toolResults?.length || 0,
+        hasText: !!result.text?.trim(),
+      });
 
-    return {
-      text: result.text,
-      toolResults: result.toolResults?.map((tr) => ({
-        toolName: tr.toolName,
-        result: tr,
-      })),
-    };
+      return {
+        text: result.text,
+        toolResults: result.toolResults?.map((tr) => ({
+          toolName: tr.toolName,
+          result: tr,
+        })),
+      };
+    } catch (error) {
+      this.logger.error('AIEngine.callModel failed', error as Error);
+      throw new AIError(
+        'MODEL_ERROR',
+        `Model execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   public postProcess(result: LLMResult): string {
+    this.logger.debug('AIEngine.postProcess', {
+      hasText: !!result.text?.trim(),
+      toolResultsCount: result.toolResults?.length || 0,
+    });
+
     if (result.text && result.text.trim() !== '') {
       return result.text;
     }
@@ -116,6 +132,14 @@ export class AIEngine {
     if (result.toolResults && result.toolResults.length > 0) {
       const toolSummary = result.toolResults
         .map((toolResult) => {
+          if (toolResult.result?.error) {
+            this.logger.warn('Tool execution error', {
+              toolName: toolResult.toolName,
+              error: toolResult.result.error,
+            });
+            return `**${toolResult.toolName}**: Error - ${toolResult.result.error}`;
+          }
+
           const resultValue =
             toolResult.result?.result ||
             toolResult.result?.output ||
@@ -132,6 +156,7 @@ export class AIEngine {
       return `I've completed the following actions:\n\n${toolSummary}`;
     }
 
-    return "I received your request but couldn't generate a proper response. Please try rephrasing your request.";
+    this.logger.warn('AIEngine.postProcess: No text or tool results to process');
+    return "I received your request but couldn't generate a proper response. This might be due to a tool execution error or the AI model not calling the appropriate tools. Please try rephrasing your request or check if you have the necessary permissions.";
   }
 }
