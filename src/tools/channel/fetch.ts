@@ -6,11 +6,11 @@ import type { ToolResult } from '../types';
 export function getChannelsTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing channels',
-    inputSchema: z.object(),
+    inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
       const channels = (await guild.channels.fetch()).filter(
         (channel) => channel?.type == ChannelType.GuildText,
-      );  
+      );
 
       const channelList = channels.map((channel) => ({
         id: channel?.id,

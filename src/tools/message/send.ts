@@ -8,18 +8,28 @@ export function sendMessageTool(guild: Guild): Tool {
     description: 'send a message in a channel',
     inputSchema: z.object({
       channelId: z.string().describe('id of channel'),
-      content: z.string().max(2000).describe('message content'),
+      content: z.string().min(1, 'message cannot be empty').max(2000).describe('message content'),
     }),
     execute: async ({ channelId, content }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(channelId);
-
-      if (!channel?.isTextBased()) {
-        return { summary: `Channel ${channelId} is not a text channel` };
+      try {
+        const channel = await guild.channels.fetch(channelId);
+        if (!channel) {
+          return { summary: `Channel ${channelId} not found in guild ${guild.name}` };
+        }
+        if (!channel.isTextBased()) {
+          return {
+            summary: `Channel ${'name' in channel ? `#${channel.name}` : channelId} is not text-based`,
+          };
+        }
+        const sent = await channel.send(content);
+        return {
+          summary: `Sent message to <#${channel.id}>`,
+          data: { id: sent.id, url: sent.url, channelId: channel.id },
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to send message to ${channelId}: ${msg}` };
       }
-
-      const sent = await channel.send(content);
-
-      return { summary: `Sent message to #${channel.name}`, data: { id: sent.id } };
     },
   });
 }

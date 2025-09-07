@@ -18,10 +18,19 @@ export function moveChannelTool(guild: Guild): Tool {
     }),
     execute: async ({ channelId, position, categoryId }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(channelId);
-
-      await channel?.edit({ position, parent: categoryId });
-
-      return { summary: `Moved channel to ${categoryId ?? ''} position ${position}` };
+      if (!channel) {
+        return { summary: `Channel ${channelId} not found` };
+      }
+      try {
+        const updated = await channel.edit({ parent: categoryId ?? null, position });
+        const parentLabel = updated.parent?.name ?? 'no category';
+        return {
+          summary: `Moved ${updated.name} to ${parentLabel} at position ${position}`,
+          data: { id: updated.id, name: updated.name, categoryId: updated.parent?.id ?? null },
+        };
+      } catch (error) {
+        return { summary: `Failed to move channel ${channelId}: ${(error as Error).message}` };
+      }
     },
   });
 }

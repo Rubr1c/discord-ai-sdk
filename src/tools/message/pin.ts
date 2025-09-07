@@ -13,15 +13,26 @@ export function pinMessageTool(guild: Guild): Tool {
     execute: async ({ messageId, channelId }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(channelId);
 
-      if (!channel?.isTextBased()) {
+      if (!channel) {
+        return { summary: `Channel ${channelId} not found` };
+      }
+
+      if (!channel.isTextBased()) {
         return { summary: `Channel ${channelId} is not a text channel` };
       }
 
-      const message = await channel.messages.fetch(messageId);
+      try {
+        const message = await channel.messages.fetch(messageId);
+        if (message.pinned) {
+          return { summary: `Message ${messageId} is already pinned` };
+        }
+        
+        await message.pin();
 
-      await message.pin();
-
-      return { summary: `Pinned message ${messageId}` };
+        return { summary: `Pinned message ${messageId}` };
+      } catch (err) {
+        return { summary: `Failed to pin message ${messageId}: ${(err as Error).message}` };
+      }
     },
   });
 }

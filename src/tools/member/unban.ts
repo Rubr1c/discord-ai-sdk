@@ -11,9 +11,13 @@ export function unbanMemberTool(guild: Guild): Tool {
       reason: z.string().nullable().describe('reason for unban'),
     }),
     execute: async ({ userId, reason }): Promise<ToolResult> => {
-      await guild.members.unban(userId, reason || 'No Reason Provided');
+      try {
+        await guild.members.unban(userId, reason || 'No Reason Provided');
 
-      return { summary: `Unbanned user ${userId}` };
+        return { summary: `Unbanned user ${userId}` };
+      } catch (err: any) {
+        return { summary: `Failed to unban ${userId}: ${err?.message ?? 'unknown error'}` };
+      }
     },
   });
 }

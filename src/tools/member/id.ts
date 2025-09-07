@@ -10,9 +10,35 @@ export function getUserIdTool(guild: Guild): Tool {
       username: z.string().describe('username of tagert'),
     }),
     execute: async ({ username }): Promise<ToolResult> => {
-      const user = (await guild.members.fetch()).find((mem) => mem.user.username === username);
+      try {
+        const q = username.trim();
 
-      return { summary: `${username}: ${user?.id ?? 'not found'}`, data: { id: user?.id ?? null } };
+        const idMatch = q.match(/^<@!?(\d{17,20})>$|^(\d{17,20})$/);
+        if (idMatch) {
+          const id = idMatch[1] ?? idMatch[2]!;
+          const member = await guild.members.fetch(id);
+          return { summary: `${member.user.username}: ${member.id}`, data: { id: member.id } };
+        }
+
+        const lower = q.toLowerCase();
+        const memberFromCache = guild.members.cache.find(
+          (m) =>
+            m.user.username.toLowerCase() === lower ||
+            m.displayName.toLowerCase() === lower ||
+            (m.user.globalName?.toLowerCase?.() ?? '') === lower,
+        );
+        if (memberFromCache) {
+          return {
+            summary: `${memberFromCache.user.username}: ${memberFromCache.id}`,
+            data: { id: memberFromCache.id },
+          };
+        }
+
+        return { summary: `${q}: not found` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `error: ${message}` };
+      }
     },
   });
 }

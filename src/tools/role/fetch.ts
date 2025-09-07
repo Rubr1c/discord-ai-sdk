@@ -6,20 +6,23 @@ import type { ToolResult } from '../types';
 export function getRolesTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing roles (name, color, id)',
-    inputSchema: z.object(),
+    inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
-      const roles = await guild.roles.fetch();
-
-      const roleList = roles.map((role) => ({
-        name: role.name,
-        colors: role.colors,
-        id: role.id,
-      }));
-
-      return {
-        summary: `Found ${roleList.length} roles in this server`,
-        data: roleList,
-      };
+      try {
+        const roles = await guild.roles.fetch();
+        const roleList = roles.map((role) => ({
+          name: role.name,
+          color: role.color,
+          id: role.id,
+        }));
+        return {
+          summary: `Found ${roleList.length} roles in this server`,
+          data: roleList,
+        };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        throw new Error(`getRolesTool: failed to fetch roles — ${msg}`);
+      }
     },
   });
 }

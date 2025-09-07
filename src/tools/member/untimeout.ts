@@ -12,8 +12,7 @@ export function untimeoutMemberTool(guild: Guild): Tool {
     execute: async ({ userId }): Promise<ToolResult> => {
       const user = await guild.members.fetch(userId);
 
-      await user.timeout(null, 'Timeout removed');
-
+      await user.disableCommunicationUntil(null, 'Timeout removed');
       return { summary: `Removed timeout from user ${userId}` };
     },
   });

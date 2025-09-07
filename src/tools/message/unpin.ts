@@ -11,17 +11,22 @@ export function unpinMessageTool(guild: Guild): Tool {
       messageId: z.string().describe('message id'),
     }),
     execute: async ({ messageId, channelId }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(channelId);
+      try {
+        const channel = await guild.channels.fetch(channelId);
+        if (!channel) {
+          return { summary: `Channel ${channelId} not found` };
+        }
+        if (!channel.isTextBased()) {
+          return { summary: `Channel ${channelId} is not a text channel` };
+        }
 
-      if (!channel?.isTextBased()) {
-        return { summary: `Channel ${channelId} is not a text channel` };
+        const message = await channel.messages.fetch(messageId);
+        await message.unpin('Unpinned via tool');
+        return { summary: `Unpinned message ${messageId}` };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Unknown error';
+        return { summary: `Failed to unpin message ${messageId}: ${msg}` };
       }
-
-      const message = await channel.messages.fetch(messageId);
-
-      await message.unpin();
-
-      return { summary: `Unpinned message ${messageId}` };
     },
   });
 }

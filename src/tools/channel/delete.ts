@@ -10,10 +10,17 @@ export function deleteChannelTool(guild: Guild): Tool {
       id: z.string().describe('channel id'),
     }),
     execute: async ({ id }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(id);
-      await channel?.delete();
-
-      return { summary: `Deleted channel ${id}` };
+      try {
+        const channel = await guild.channels.fetch(id).catch(() => null);
+        if (!channel) {
+          return { summary: `Channel ${id} not found or inaccessible.` };
+        }
+        await channel.delete('Deleted via tool');
+        return { summary: `Deleted channel ${channel.name} (${id}).` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to delete channel ${id}: ${message}` };
+      }
     },
   });
 }

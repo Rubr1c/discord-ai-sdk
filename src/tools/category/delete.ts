@@ -1,5 +1,5 @@
 import { tool, type Tool } from 'ai';
-import { type Guild } from 'discord.js';
+import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
@@ -10,10 +10,21 @@ export function deleteCategoryTool(guild: Guild): Tool {
       id: z.string().describe('id of the category'),
     }),
     execute: async ({ id }): Promise<ToolResult> => {
-      const category = await guild.channels.fetch(id);
-      await category?.delete();
+      try {
+        const category = await guild.channels.fetch(id);
+        if (!category) {
+          return { summary: `Category ${id} not found` };
+        }
 
-      return { summary: `Deleted Category: ${id}` };
+        if (category.type !== ChannelType.GuildCategory) {
+          return { summary: `Channel is not a category: ${id}` };
+        }
+        await category.delete();
+
+        return { summary: `Deleted Category: ${id}` };
+      } catch (err) {
+        return { summary: `Failed to delete category ${id}: ${(err as Error).message}` };
+      }
     },
   });
 }

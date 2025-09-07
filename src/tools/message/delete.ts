@@ -11,17 +11,23 @@ export function deleteMessageTool(guild: Guild): Tool {
       messageId: z.string().describe('id of message'),
     }),
     execute: async ({ channelId, messageId }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(channelId);
+      try {
+        const channel = await guild.channels.fetch(channelId);
+        if (!channel) {
+          return { summary: `Channel ${channelId} not found` };
+        }
 
-      if (!channel?.isTextBased()) {
-        return { summary: `Channel ${channelId} is not a text channel` };
+        if (!channel.isTextBased()) {
+          return { summary: `Channel ${channelId} is not a text channel` };
+        }
+
+        const msg = await channel.messages.fetch(messageId);
+        await msg.delete();
+        return { summary: `Deleted message ${messageId}` };
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to delete message ${messageId}: ${message}` };
       }
-
-      const msg = await channel.messages.fetch(messageId);
-
-      await msg.delete();
-
-      return { summary: `Deleted message ${messageId}` };
     },
   });
 }
