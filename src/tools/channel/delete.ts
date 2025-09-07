@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function deleteChannelTool(guild: Guild): Tool {
   return tool({
@@ -8,11 +9,11 @@ export function deleteChannelTool(guild: Guild): Tool {
     inputSchema: z.object({
       id: z.string().describe('channel id'),
     }),
-    execute: async ({ id }) => {
+    execute: async ({ id }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(id);
       await channel?.delete();
 
-      return `Deleted channel ${id}`;
+      return { summary: `Deleted channel ${id}` };
     },
   });
 }

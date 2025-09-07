@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function createChannelTool(guild: Guild): Tool {
   return tool({
@@ -20,9 +21,8 @@ export function createChannelTool(guild: Guild): Tool {
           'Category ID where the channel should be created. Use the ID from getCategories tool output.',
         ),
     }),
-    execute: async ({ channelName, category }) => {
+    execute: async ({ channelName, category }): Promise<ToolResult> => {
       try {
-        // Clean and format the channel name
         const cleanName = channelName
           .toLowerCase()
           .replace(/\s+/g, '-')
@@ -32,8 +32,7 @@ export function createChannelTool(guild: Guild): Tool {
         if (!cleanName) {
           throw new Error('Channel name is invalid after cleaning');
         }
-
-        // Validate category exists if provided
+      
         if (category) {
           const categoryChannel = await guild.channels.fetch(category).catch(() => null);
           if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
@@ -47,7 +46,10 @@ export function createChannelTool(guild: Guild): Tool {
           parent: category || null,
         });
 
-        return `Successfully created channel: #${channel.name} (ID: ${channel.id})${category ? ` in category ${category}` : ''}`;
+        return {
+          summary: `Successfully created channel: #${channel.name} (ID: ${channel.id})${category ? ` in category ${category}` : ''}`,
+          data: { id: channel.id, name: channel.name, categoryId: category ?? null },
+        };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         throw new Error(`Failed to create channel: ${errorMsg}`);

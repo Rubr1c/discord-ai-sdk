@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { type FetchMessagesOptions, type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function getMessagesTool(guild: Guild): Tool {
   return tool({
@@ -18,10 +19,10 @@ export function getMessagesTool(guild: Guild): Tool {
       after: z.string().optional().describe('get messages after this message ID'),
       around: z.string().optional().describe('get messages around this message ID'),
     }),
-    execute: async ({ channelId, limit, before, after, around }) => {
+    execute: async ({ channelId, limit, before, after, around }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(channelId);
       if (!channel?.isTextBased()) {
-        return `Channel ${channelId} is not a text channel`;
+        return { summary: `Channel ${channelId} is not a text channel` };
       }
 
       const fetchOptions: FetchMessagesOptions = { limit };
@@ -40,12 +41,10 @@ export function getMessagesTool(guild: Guild): Tool {
         timestamp: msg.createdAt.toISOString(),
       }));
 
-      return `Fetched ${messageList.length} messages from #${channel.name}:\n${messageList
-        .map(
-          (msg) =>
-            `- [${msg.timestamp}](ID: ${msg.id}) ${msg.author.username}: ${msg.content || '[no content]'}`,
-        )
-        .join('\n')}`;
+      return {
+        summary: `Fetched ${messageList.length} messages from #${channel.name}`,
+        data: messageList,
+      };
     },
   });
 }

@@ -1,25 +1,28 @@
 import { tool, type Tool } from 'ai';
 import { type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function getEmojisTool(guild: Guild): Tool {
   return tool({
     description: 'get server emojis',
     inputSchema: z.object(),
-    execute: async () => {
+    execute: async (): Promise<ToolResult> => {
       const fetched = await guild.emojis.fetch();
-      const lines = Array.from(fetched.values()).map((e) => {
-        const flags = [
-          e.animated ? 'animated' : undefined,
-          e.available ? undefined : 'unavailable',
-          e.managed ? 'managed' : undefined,
-          e.requiresColons ? 'requires-colons' : undefined,
-        ].filter(Boolean);
-        const flagsStr = flags.length ? ` (${flags.join(', ')})` : '';
-        return `- ${e.name ?? 'unknown'} [${e.id}] ${e.imageURL()}${flagsStr}`;
-      });
+      const list = Array.from(fetched.values()).map((e) => ({
+        id: e.id,
+        name: e.name,
+        url: e.imageURL(),
+        animated: e.animated,
+        available: e.available,
+        managed: e.managed,
+        requiresColons: e.requiresColons,
+      }));
 
-      return `Fetched emojis (${lines.length}):\n${lines.join('\n')}`;
+      return {
+        summary: `Fetched emojis (${list.length})`,
+        data: list,
+      };
     },
   });
 }

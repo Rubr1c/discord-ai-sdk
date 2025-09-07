@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function renameChannelTool(guild: Guild): Tool {
   return tool({
@@ -13,7 +14,7 @@ export function renameChannelTool(guild: Guild): Tool {
         .max(100, 'Channel name too long')
         .describe('Channel name (lowercase, no spaces, use dashes between words)'),
     }),
-    execute: async ({ channelId, newName }) => {
+    execute: async ({ channelId, newName }): Promise<ToolResult> => {
       const channelName = newName
         .toLowerCase()
         .replace(/\s+/g, '-')
@@ -24,7 +25,7 @@ export function renameChannelTool(guild: Guild): Tool {
 
       await channel?.edit({ name: channelName });
 
-      return `Edited channel name of channel [${channelId}] to ${channelName}`;
+      return { summary: `Edited channel name of channel [${channelId}] to ${channelName}` };
     },
   });
 }

@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function setServerNameTool(guild: Guild): Tool {
   return tool({
@@ -8,10 +9,10 @@ export function setServerNameTool(guild: Guild): Tool {
     inputSchema: z.object({
       name: z.string().describe('server name'),
     }),
-    execute: async ({ name }) => {
+    execute: async ({ name }): Promise<ToolResult> => {
       await guild.setName(name);
 
-      return `Renamed server to ${name}`;
+      return { summary: `Renamed server to ${name}` };
     },
   });
 }

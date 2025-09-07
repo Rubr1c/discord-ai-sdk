@@ -1,12 +1,13 @@
 import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function getRolesTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing roles (name, color, id)',
     inputSchema: z.object(),
-    execute: async () => {
+    execute: async (): Promise<ToolResult> => {
       const roles = await guild.roles.fetch();
 
       const roleList = roles.map((role) => ({
@@ -15,9 +16,10 @@ export function getRolesTool(guild: Guild): Tool {
         id: role.id,
       }));
 
-      return `Found ${roleList.length} roles in this server:\n${roleList
-        .map((role) => `- ${role.name} [${role.colors.primaryColor}] (ID: ${role.id})`)
-        .join('\n')}`;
+      return {
+        summary: `Found ${roleList.length} roles in this server`,
+        data: roleList,
+      };
     },
   });
 }

@@ -1,24 +1,26 @@
 import { tool, type Tool } from 'ai';
 import { type Guild, StickerFormatType } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function getStickersTool(guild: Guild): Tool {
   return tool({
     description: 'get server stickers',
     inputSchema: z.object(),
-    execute: async () => {
+    execute: async (): Promise<ToolResult> => {
       const fetched = await guild.stickers.fetch();
-      const lines = Array.from(fetched.values()).map((s) => {
-        const format = StickerFormatType[s.format];
-        const flags = [
-          s.available ? undefined : 'unavailable',
-          format ? `format:${String(format).toLowerCase()}` : undefined,
-        ].filter(Boolean);
-        const flagsStr = flags.length ? ` (${flags.join(', ')})` : '';
-        return `- ${s.name ?? 'unknown'} [${s.id}] ${s.url}${flagsStr}`;
-      });
+      const list = Array.from(fetched.values()).map((s) => ({
+        id: s.id,
+        name: s.name,
+        url: s.url,
+        available: s.available,
+        format: String(StickerFormatType[s.format]).toLowerCase(),
+      }));
 
-      return `Fetched stickers (${lines.length}):\n${lines.join('\n')}`;
+      return {
+        summary: `Fetched stickers (${list.length})`,
+        data: list,
+      };
     },
   });
 }

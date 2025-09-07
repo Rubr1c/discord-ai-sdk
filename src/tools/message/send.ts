@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function sendMessageTool(guild: Guild): Tool {
   return tool({
@@ -9,16 +10,16 @@ export function sendMessageTool(guild: Guild): Tool {
       channelId: z.string().describe('id of channel'),
       content: z.string().max(2000).describe('message content'),
     }),
-    execute: async ({ channelId, content }) => {
+    execute: async ({ channelId, content }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(channelId);
 
       if (!channel?.isTextBased()) {
-        return `Channel ${channelId} is not a text channel`;
+        return { summary: `Channel ${channelId} is not a text channel` };
       }
-      
-      await channel.send(content);
 
-      return `Sent message to ${channelId}`;
+      const sent = await channel.send(content);
+
+      return { summary: `Sent message to #${channel.name}`, data: { id: sent.id } };
     },
   });
 }

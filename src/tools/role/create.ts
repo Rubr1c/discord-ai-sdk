@@ -2,6 +2,7 @@ import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import { PermissionsBitField } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 const PermissionSchema = z
   .object({
@@ -50,7 +51,7 @@ export function createRoleTool(guild: Guild): Tool {
         .describe('should the role be mentionable (defualt true)'),
       permissions: PermissionSchema,
     }),
-    execute: async ({ name, color, mentionable, permissions }) => {
+    execute: async ({ name, color, mentionable, permissions }): Promise<ToolResult> => {
       // Convert hex string to number for Discord API
       const roleColor = color ? parseInt(color, 16) : parseInt('5865F2', 16);
 
@@ -79,7 +80,7 @@ export function createRoleTool(guild: Guild): Tool {
           muteMembers: PermissionsBitField.Flags.MuteMembers,
           deafenMembers: PermissionsBitField.Flags.DeafenMembers,
           moveMembers: PermissionsBitField.Flags.MoveMembers,
-        };
+        } as const;
 
         rolePermissions = Object.entries(permissions)
           .filter(([key, value]) => value === true && key in permissionMap)
@@ -93,12 +94,11 @@ export function createRoleTool(guild: Guild): Tool {
         permissions: rolePermissions,
       });
 
-      console.log(rolePermissions);
-
       const permCount = permissions?.administrator
         ? 'Administrator (all permissions)'
         : `${rolePermissions.length} permissions`;
-      return `Created role: ${role.name} with ${permCount}`;
+
+      return { summary: `Created role: ${role.name} with ${permCount}`, data: { id: role.id } };
     },
   });
 }

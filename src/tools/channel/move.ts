@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function moveChannelTool(guild: Guild): Tool {
   return tool({
@@ -15,12 +16,12 @@ export function moveChannelTool(guild: Guild): Tool {
           'Category ID where the channel should be created. Use the ID from getCategories tool output.',
         ),
     }),
-    execute: async ({ channelId, position, categoryId }) => {
+    execute: async ({ channelId, position, categoryId }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(channelId);
 
       await channel?.edit({ position, parent: categoryId });
 
-      return `Moved channel to ${categoryId ?? ''} position ${position}`;
+      return { summary: `Moved channel to ${categoryId ?? ''} position ${position}` };
     },
   });
 }

@@ -1,6 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
+import type { ToolResult } from '../types';
 
 export function createCategoryTool(guild: Guild): Tool {
   return tool({
@@ -8,13 +9,13 @@ export function createCategoryTool(guild: Guild): Tool {
     inputSchema: z.object({
       name: z.string().describe('name of the category'),
     }),
-    execute: async ({ name }) => {
+    execute: async ({ name }): Promise<ToolResult> => {
       const category = await guild.channels.create({
         name: name,
         type: ChannelType.GuildCategory,
       });
 
-      return `Created Category: ${category.name}`;
+      return { summary: `Created Category: ${category.name}`, data: { id: category.id } };
     },
   });
 }
