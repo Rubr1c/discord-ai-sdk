@@ -16,7 +16,7 @@ export function deleteRoleTool(guild: Guild): Tool {
         if (!role) {
           return { summary: `No role found for id ${id}.` };
         }
-        
+
         if (role.id === guild.id) {
           return { summary: 'Cannot delete the @everyone role.' };
         }

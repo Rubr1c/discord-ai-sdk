@@ -42,16 +42,18 @@ export class AIEngine {
 
   constructor(params: AIEngineProps) {
     this.model = params.model;
-    this.promptBuilder =
-      params.promptBuilder || new PromptBuilder('', false, params.logger ?? new ConsoleLogger());
+    this.logger = params.logger ?? new ConsoleLogger();
+    this.promptBuilder = params.promptBuilder || new PromptBuilder('', false, this.logger);
     this.toolRegistry =
       params.toolRegistry ||
       new ToolRegistry({
         tools: discordApiTools,
-        ...(params.logger ? { logger: params.logger } : {}),
+        logger: this.logger,
       });
-    this.rateLimiter = params.rateLimiter || new RateLimiter({ limitCount: 3, windowMs: 60000 });
-    this.logger = params.logger ?? new ConsoleLogger();
+    this.rateLimiter =
+      params.rateLimiter ||
+      new RateLimiter({ limitCount: 3, windowMs: 60000, logger: this.logger });
+
     this.config = {
       maxRetries: params.maxRetries ?? 2,
       maxSteps: params.maxSteps ?? 5,
@@ -61,19 +63,15 @@ export class AIEngine {
   }
 
   public async handle(prompt: string, ctx: RequestContext, postProcess = true): Promise<string> {
-    this.logger.debug('AIEngine.handle invoked', { userId: ctx.userId, guildId: ctx.guild.id });
     if (await this.rateLimiter.isRateLimited(ctx)) {
       const err = new AIError('RATE_LIMIT', `User[${ctx.userId}] is rate limited`);
-      this.logger.warn('Rate limited request', { userId: ctx.userId, guildId: ctx.guild.id });
       throw err;
     }
 
     const res = await this.callModel(prompt, ctx);
 
     if (postProcess) {
-      const text = this.postProcess(res);
-      this.logger.debug('AIEngine.postProcess completed');
-      return text;
+      return this.postProcess(res);
     }
     return res.text;
   }
@@ -97,11 +95,7 @@ export class AIEngine {
         maxOutputTokens: this.config.maxTokens,
       });
 
-      this.logger.info('AIEngine.callModel completed', {
-        toolResults: !!result.toolResults,
-        toolCount: result.toolResults?.length || 0,
-        hasText: !!result.text?.trim(),
-      });
+      this.logger.info('AIEngine.callModel completed');
 
       return {
         text: result.text,
@@ -120,43 +114,54 @@ export class AIEngine {
   }
 
   public postProcess(result: LLMResult): string {
-    this.logger.debug('AIEngine.postProcess', {
-      hasText: !!result.text?.trim(),
-      toolResultsCount: result.toolResults?.length || 0,
-    });
-
     if (result.text && result.text.trim() !== '') {
       return result.text;
     }
 
     if (result.toolResults && result.toolResults.length > 0) {
-      const toolSummary = result.toolResults
-        .map((toolResult) => {
-          if (toolResult.result?.error) {
-            this.logger.warn('Tool execution error', {
-              toolName: toolResult.toolName,
-              error: toolResult.result.error,
-            });
-            return `**${toolResult.toolName}**: Error - ${toolResult.result.error}`;
-          }
-
-          const resultValue =
-            toolResult.result?.result ||
-            toolResult.result?.output ||
-            toolResult.result ||
-            'Tool executed successfully';
-
-          const formattedResult =
-            typeof resultValue === 'string' ? resultValue : JSON.stringify(resultValue);
-
-          return `**${toolResult.toolName}**: ${formattedResult}`;
-        })
-        .join('\n\n');
-
-      return `I've completed the following actions:\n\n${toolSummary}`;
+      const lines = result.toolResults.map((toolResult) => {
+        const summary = this.extractToolRunSummary(toolResult.result);
+        return `**${toolResult.toolName}**: ${summary}`;
+      });
+      return `I've completed the following actions:\n\n${lines.join('\n\n')}`;
     }
 
-    this.logger.warn('AIEngine.postProcess: No text or tool results to process');
     return "I received your request but couldn't generate a proper response. This might be due to a tool execution error or the AI model not calling the appropriate tools. Please try rephrasing your request or check if you have the necessary permissions.";
+  }
+
+  private extractToolRunSummary(toolRun: unknown): string {
+    if (
+      this.isRecord(toolRun) &&
+      typeof toolRun.error === 'string' &&
+      toolRun.error.trim() !== ''
+    ) {
+      return `Error - ${toolRun.error}`;
+    }
+
+    const nested = this.pickFirst(toolRun, ['result', 'output']);
+    if (
+      this.isRecord(nested) &&
+      typeof nested.summary === 'string' &&
+      nested.summary.trim() !== ''
+    ) {
+      return nested.summary;
+    }
+
+    if (typeof nested === 'string' && nested.trim() !== '') return nested;
+    if (typeof toolRun === 'string' && toolRun.trim() !== '') return toolRun;
+
+    return 'Tool executed successfully';
+  }
+
+  private isRecord(value: unknown): value is Record<string, any> {
+    return typeof value === 'object' && value !== null;
+  }
+
+  private pickFirst(source: unknown, keys: string[]): unknown {
+    if (!this.isRecord(source)) return undefined;
+    for (const key of keys) {
+      if (key in source) return source[key];
+    }
+    return undefined;
   }
 }

@@ -32,7 +32,7 @@ export function createChannelTool(guild: Guild): Tool {
         if (!cleanName) {
           throw new Error('Channel name is invalid after cleaning');
         }
-      
+
         if (category) {
           const categoryChannel = await guild.channels.fetch(category).catch(() => null);
           if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {

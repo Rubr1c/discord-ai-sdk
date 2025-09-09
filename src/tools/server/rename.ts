@@ -21,7 +21,6 @@ export function setServerNameTool(guild: Guild): Tool {
         return { summary: `Server name is already '${newName}'.` };
       }
 
-
       try {
         await guild.setName(newName, 'Renamed by tool');
         return { summary: `Renamed server to ${newName}` };

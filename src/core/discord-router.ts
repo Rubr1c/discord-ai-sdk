@@ -60,6 +60,11 @@ export class DiscordRouter {
 
           try {
             const ctx = this.buildContext(message);
+            if (!ctx.channel.isTextBased()) {
+              return;
+            }
+
+            ctx.channel.sendTyping();
             const response = await this.dispatch(ctx);
             await this.sendMessageResponse(message, response);
           } catch (error) {
@@ -249,6 +254,12 @@ export class DiscordRouter {
 
       try {
         const ctx = this.buildContext(interaction);
+
+        if (!ctx.channel.isTextBased()) {
+          return;
+        }
+
+        ctx.channel.sendTyping();
 
         await interaction.deferReply({ ephemeral: this.ephemeralReplies });
 

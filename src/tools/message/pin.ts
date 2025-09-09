@@ -26,7 +26,7 @@ export function pinMessageTool(guild: Guild): Tool {
         if (message.pinned) {
           return { summary: `Message ${messageId} is already pinned` };
         }
-        
+
         await message.pin();
 
         return { summary: `Pinned message ${messageId}` };

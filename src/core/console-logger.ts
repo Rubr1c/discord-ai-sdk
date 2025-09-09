@@ -7,6 +7,9 @@ export class ConsoleLogger implements Logger {
 
   constructor(level: LogLevel = 'info') {
     this.level = level;
+    if (process.env.LOG_LEVEL) {
+      this.level = process.env.LOG_LEVEL as LogLevel;
+    }
   }
 
   private shouldLog(level: LogLevel): boolean {
