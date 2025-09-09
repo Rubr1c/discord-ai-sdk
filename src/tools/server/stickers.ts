@@ -6,7 +6,7 @@ import type { ToolResult } from '../types';
 export function getStickersTool(guild: Guild): Tool {
   return tool({
     description: 'get server stickers',
-    inputSchema: z.object(),
+    inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
       const fetched = await guild.stickers.fetch();
       const list = Array.from(fetched.values()).map((s) => ({

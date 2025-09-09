@@ -26,11 +26,8 @@ export function deleteRoleTool(guild: Guild): Tool {
         const name = role.name;
         await role.delete();
         return { summary: `Deleted role ${name} (${id}).` };
-      } catch (err) {
-        const msg =
-          err && typeof err === 'object' && 'message' in (err as any)
-            ? (err as any).message
-            : String(err);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('Unknown Role')) {
           return { summary: `Role ${id} not found.` };
         }

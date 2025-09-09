@@ -5,16 +5,16 @@ import type { ToolResult } from '../types';
 
 export function assignRoleTool(guild: Guild): Tool {
   return tool({
-    description: 'assing role to user',
+    description: 'assign role to user',
     inputSchema: z.object({
-      role_id: z.string().describe('id of role'),
-      user_id: z.string().describe('id of user'),
+      roleId: z.string().describe('id of role'),
+      userId: z.string().describe('id of user'),
     }),
-    execute: async ({ role_id, user_id }): Promise<ToolResult> => {
-      const user = await guild.members.fetch(user_id);
-      await user.roles.add(role_id);
+    execute: async ({ roleId, userId }): Promise<ToolResult> => {
+      const user = await guild.members.fetch(userId);
+      await user.roles.add(roleId);
 
-      return { summary: `Added role ${role_id} to ${user_id}` };
+      return { summary: `Added role ${roleId} to ${userId}` };
     },
   });
 }

@@ -30,13 +30,13 @@ export function createChannelTool(guild: Guild): Tool {
           .replace(/^-+|-+$/g, '');
 
         if (!cleanName) {
-          throw new Error('Channel name is invalid after cleaning');
+          return { summary: 'Channel name is invalid after cleaning' };
         }
 
         if (category) {
           const categoryChannel = await guild.channels.fetch(category).catch(() => null);
           if (!categoryChannel || categoryChannel.type !== ChannelType.GuildCategory) {
-            throw new Error(`Category with ID ${category} not found or is not a category`);
+            return { summary: `Category with ID ${category} not found or is not a category` };
           }
         }
 
@@ -52,7 +52,7 @@ export function createChannelTool(guild: Guild): Tool {
         };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        throw new Error(`Failed to create channel: ${errorMsg}`);
+        return { summary: `Failed to create channel: ${errorMsg}` };
       }
     },
   });

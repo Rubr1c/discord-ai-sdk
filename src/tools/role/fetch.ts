@@ -19,9 +19,9 @@ export function getRolesTool(guild: Guild): Tool {
           summary: `Found ${roleList.length} roles in this server`,
           data: roleList,
         };
-      } catch (err) {
+      } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        throw new Error(`getRolesTool: failed to fetch roles — ${msg}`);
+        return { summary: `Failed to fetch roles: ${msg}` };
       }
     },
   });

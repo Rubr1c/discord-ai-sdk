@@ -23,7 +23,7 @@ export interface LLMResult {
   text: string;
   toolResults?: {
     toolName: string;
-    result: any;
+    result: unknown;
   }[];
 }
 

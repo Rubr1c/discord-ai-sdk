@@ -15,8 +15,9 @@ export function unbanMemberTool(guild: Guild): Tool {
         await guild.members.unban(userId, reason || 'No Reason Provided');
 
         return { summary: `Unbanned user ${userId}` };
-      } catch (err: any) {
-        return { summary: `Failed to unban ${userId}: ${err?.message ?? 'unknown error'}` };
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'unknown error';
+        return { summary: `Failed to unban ${userId}: ${message}` };
       }
     },
   });

@@ -6,7 +6,7 @@ import type { ToolResult } from '../types';
 export function getEmojisTool(guild: Guild): Tool {
   return tool({
     description: 'get server emojis',
-    inputSchema: z.object(),
+    inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
       const fetched = await guild.emojis.fetch();
       const list = Array.from(fetched.values()).map((e) => ({

@@ -18,8 +18,9 @@ export function kickMemberTool(guild: Guild): Tool {
         await user.kick(normalizedReason);
 
         return { summary: `Kicked user ${userId}` };
-      } catch (err: any) {
-        return { summary: `Failed to kick ${userId}: ${err?.message ?? 'unknown error'}` };
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'unknown error';
+        return { summary: `Failed to kick ${userId}: ${message}` };
       }
     },
   });

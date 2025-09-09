@@ -6,7 +6,7 @@ import type { ToolResult } from '../types';
 export function getCategoriesTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing channel categories',
-    inputSchema: z.object(),
+    inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
       const channels = await guild.channels.fetch();
       const categories = channels.filter((channel) => channel?.type == ChannelType.GuildCategory);

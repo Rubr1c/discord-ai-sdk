@@ -6,7 +6,7 @@ import type { ToolResult } from '../types';
 export function getServerInfoTool(guild: Guild): Tool {
   return tool({
     description: 'get basic server info',
-    inputSchema: z.object(),
+    inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
       const { name, createdAt, memberCount, ownerId } = guild;
 

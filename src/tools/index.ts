@@ -10,6 +10,7 @@ import { deleteCategoryTool } from './category/delete';
 import { deleteRoleTool } from './role/delete';
 import { assignRoleTool } from './role/assign';
 import { removeRoleTool } from './role/remove';
+import { updateRoleTool } from './role/update';
 import { getMembersTool } from './member/fetch';
 import { kickMemberTool } from './member/kick';
 import { banMemberTool } from './member/ban';
@@ -40,6 +41,7 @@ export const discordApiTools = {
   createRole: createTool(createRoleTool, 'mid'),
   getRoles: createTool(getRolesTool, 'low'),
   deleteRole: createTool(deleteRoleTool, 'high'),
+  updateRole: createTool(updateRoleTool, 'high'),
   assignRole: createTool(assignRoleTool, 'high'),
   removeRole: createTool(removeRoleTool, 'high'),
   getRoleId: createTool(getRoleIdTool, 'low'),

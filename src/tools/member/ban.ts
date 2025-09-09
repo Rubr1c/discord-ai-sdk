@@ -23,8 +23,9 @@ export function banMemberTool(guild: Guild): Tool {
       try {
         await guild.members.ban(userId, { reason: normalizedReason });
         return { summary: `Banned user ${userId} (${normalizedReason})` };
-      } catch (err: any) {
-        return { summary: `Failed to ban ${userId}: ${err?.message ?? 'unknown error'}` };
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'unknown error';
+        return { summary: `Failed to ban ${userId}: ${message}` };
       }
     },
   });
