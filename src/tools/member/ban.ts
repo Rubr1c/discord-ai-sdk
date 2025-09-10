@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to ban a member.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function banMemberTool(guild: Guild): Tool {
   return tool({
     description: 'ban a member from the server',

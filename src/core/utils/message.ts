@@ -1,5 +1,10 @@
 export const DISCORD_MESSAGE_LIMIT = 2000;
 
+/**
+ * Split a message into chunks of 2000 characters
+ * @param message - The message to split
+ * @returns An array of chunks
+ */
 export function splitMessage(message: string): string[] {
   if (message.length <= DISCORD_MESSAGE_LIMIT) {
     return [message];

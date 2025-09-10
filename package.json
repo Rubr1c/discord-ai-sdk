@@ -1,6 +1,7 @@
 {
   "name": "discord-ai-sdk",
   "version": "0.0.1",
+  "type": "module",
   "description": "A sdk made to allow ai to interact with discord api for discord bots",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -36,7 +37,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "pnpm typecheck && pnpm lint && pnpm build"
   },
   "keywords": [
     "discord",

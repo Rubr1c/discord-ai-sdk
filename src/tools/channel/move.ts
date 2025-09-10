@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to move a channel.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function moveChannelTool(guild: Guild): Tool {
   return tool({
     description: 'move channel (reorder / move into category)',

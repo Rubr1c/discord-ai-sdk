@@ -10,8 +10,6 @@ export { AIError, ErrorReason } from './core/error';
 export type { AITool, RequestContext, Safety, BotMode, Logger } from './core/types';
 export { SAFETY } from './core/types';
 
-export type { AIEngineProps, LLMResult } from './core/ai-engine';
-
 export type { DiscordRouterProps } from './core/discord-router';
 
 export type { RateLimitOpts, RateLimitFn } from './core/rate-limiter';

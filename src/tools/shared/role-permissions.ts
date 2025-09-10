@@ -1,6 +1,9 @@
 import { PermissionsBitField } from 'discord.js';
 import z from 'zod';
 
+/**
+ * Zod schema for role permissions.
+ */
 export const PermissionSchema = z
   .object({
     administrator: z
@@ -30,8 +33,16 @@ export const PermissionSchema = z
     'Role permissions - set administrator: true for admin roles, or specify individual permissions. If not provided, creates a basic role with no special permissions.',
   );
 
+/**
+ * The type for role permissions.
+ */
 export type PermissionInput = z.infer<typeof PermissionSchema>;
 
+/**
+ * Converts role permissions to flags.
+ * @param permissions - The role permissions.
+ * @returns The flags.
+ */
 export function permissionsToFlags(permissions?: PermissionInput): bigint[] {
   if (!permissions) return [];
   if (permissions.administrator) {

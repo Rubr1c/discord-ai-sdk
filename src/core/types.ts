@@ -1,6 +1,9 @@
 import type { Tool } from 'ai';
 import type { Guild, GuildMember, APIInteractionGuildMember, GuildBasedChannel } from 'discord.js';
 
+/**
+ * Request context.
+ */
 export interface RequestContext {
   guild: Guild;
   channel: GuildBasedChannel;
@@ -9,6 +12,9 @@ export interface RequestContext {
   member: GuildMember | APIInteractionGuildMember | null;
 }
 
+/**
+ * Safety levels.
+ */
 export const SAFETY = {
   low: 0,
   mid: 1,
@@ -32,6 +38,7 @@ export interface Logger {
 }
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
 export const LOG_LEVEL_ORDER = {
   debug: 10,
   info: 20,

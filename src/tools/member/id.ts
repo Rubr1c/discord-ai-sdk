@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to fetch user id from username.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function getUserIdTool(guild: Guild): Tool {
   return tool({
     description: 'fetch user id from username',
@@ -15,7 +20,7 @@ export function getUserIdTool(guild: Guild): Tool {
 
         const idMatch = q.match(/^<@!?(\d{17,20})>$|^(\d{17,20})$/);
         if (idMatch) {
-          const id = idMatch[1] ?? idMatch[2]!;
+          const id = idMatch[1] ?? idMatch[2] ?? '';
           const member = await guild.members.fetch(id);
           return { summary: `${member.user.username}: ${member.id}`, data: { id: member.id } };
         }

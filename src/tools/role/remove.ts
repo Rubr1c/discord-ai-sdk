@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to remove a role from a user.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function removeRoleTool(guild: Guild): Tool {
   return tool({
     description: 'remove role from user',

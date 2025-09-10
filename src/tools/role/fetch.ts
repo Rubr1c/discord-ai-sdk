@@ -3,6 +3,11 @@ import type { Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to fetch existing roles.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function getRolesTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing roles (name, color, id)',

@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to fetch role id from role name.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function getRoleIdTool(guild: Guild): Tool {
   return tool({
     description: 'fetch role id from role name',

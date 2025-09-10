@@ -4,6 +4,11 @@ import z from 'zod';
 import type { ToolResult } from '../types';
 import { PermissionSchema, permissionsToFlags } from '../shared/role-permissions';
 
+/**
+ * Creates a tool to create a role.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function createRoleTool(guild: Guild): Tool {
   return tool({
     description:

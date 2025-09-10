@@ -3,6 +3,11 @@ import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to fetch existing channels.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function getChannelsTool(guild: Guild): Tool {
   return tool({
     description: 'fetch existing channels',

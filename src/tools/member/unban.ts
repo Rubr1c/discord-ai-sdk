@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to unban a member.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function unbanMemberTool(guild: Guild): Tool {
   return tool({
     description: 'unban a member from the server',

@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to remove timeout from a member.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function untimeoutMemberTool(guild: Guild): Tool {
   return tool({
     description: 'remove timeout from a member in the server',

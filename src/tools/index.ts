@@ -33,10 +33,19 @@ import { pinMessageTool } from './message/pin';
 import { unpinMessageTool } from './message/unpin';
 import { deleteMessageTool } from './message/delete';
 
+/**
+ * Creates a tool.
+ * @param tool - The tool.
+ * @param safetyLevel - The safety level.
+ * @returns The tool.
+ */
 export function createTool(tool: (guild: Guild) => Tool, safetyLevel: Safety) {
   return { tool, safetyLevel };
 }
 
+/**
+ * The Discord API tools.
+ */
 export const discordApiTools = {
   createRole: createTool(createRoleTool, 'mid'),
   getRoles: createTool(getRolesTool, 'low'),

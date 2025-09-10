@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to delete a message.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function deleteMessageTool(guild: Guild): Tool {
   return tool({
     description: 'delete a message in a channel',

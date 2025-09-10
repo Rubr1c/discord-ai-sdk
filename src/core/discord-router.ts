@@ -5,7 +5,6 @@ import {
   PermissionsBitField,
   SlashCommandBuilder,
   type Client,
-  type GuildBasedChannel,
   type Interaction,
 } from 'discord.js';
 import { type BotMode, type Logger, type RequestContext } from './types';
@@ -14,16 +13,29 @@ import { AIEngine } from './ai-engine';
 import { splitMessage } from './utils/message';
 import { ConsoleLogger } from './console-logger';
 
-export type DiscordRouterProps = {
+/**
+ * Configuration for the Discord router.
+ */
+export interface DiscordRouterProps {
+  /** The mode of the router. */
   mode: BotMode;
+  /** The engine of the router. */
   engine: AIEngine;
+  /** The activator of the router. */
   activator: string;
+  /** The required role function of the router. */
   requiredRoleFn?: (guild: Guild) => Promise<string>;
+  /** The allowed channels function of the router. */
   allowedChannelsFn?: (guild: Guild) => Promise<string[]>;
+  /** The ephemeral replies of the router. @default false */
   ephemeralReplies?: boolean;
+  /** The logger of the router. @default new ConsoleLogger() */
   logger?: Logger;
-};
+}
 
+/**
+ * Discord router.
+ */
 export class DiscordRouter {
   private mode: BotMode;
   private activator: string;
@@ -33,6 +45,17 @@ export class DiscordRouter {
   private engine: AIEngine;
   private logger: Logger;
 
+  /**
+   * Creates a Discord router.
+   * @param options - The options for the Discord router.
+   * @example
+   * const discordRouter = new DiscordRouter({
+   *   mode: 'message',
+   *   engine: new AIEngine({ model: openai('gpt-4o'), logger: new ConsoleLogger() }),
+   *   activator: '!ai',
+   *   logger: new ConsoleLogger(),
+   * });
+   */
   constructor({
     mode,
     engine,
@@ -51,6 +74,10 @@ export class DiscordRouter {
     this.logger = logger ?? new ConsoleLogger();
   }
 
+  /**
+   * Subscribes to the Discord client.
+   * @param client - The Discord client.
+   */
   public subscribe(client: Client): void {
     this.logger.info('DiscordRouter.subscribe', { mode: this.mode, activator: this.activator });
     switch (this.mode) {
@@ -83,6 +110,11 @@ export class DiscordRouter {
     }
   }
 
+  /**
+   * Builds the context for the event.
+   * @param event - The event to build the context for.
+   * @returns The context for the event.
+   */
   private buildContext(event: Message | Interaction): RequestContext {
     if (!event.guild) throw new Error('No Guild');
     if (!event.channel || !event.channel.isTextBased())
@@ -96,8 +128,8 @@ export class DiscordRouter {
     if ('author' in event && 'content' in event) {
       const message = event;
       return {
-        guild: message.guild!,
-        channel: channel as GuildBasedChannel,
+        guild: channel.guild,
+        channel: channel,
         userId: message.author.id,
         content: message.content.replace(this.activator, '').trim(),
         member: message.member,
@@ -109,8 +141,8 @@ export class DiscordRouter {
         : '';
 
       return {
-        guild: interaction.guild!,
-        channel: channel as GuildBasedChannel,
+        guild: channel.guild,
+        channel: channel,
         userId: interaction.user.id,
         content: prompt,
         member: interaction.member,
@@ -120,6 +152,11 @@ export class DiscordRouter {
     }
   }
 
+  /**
+   * Dispatches the request to the engine.
+   * @param ctx - The context for the request.
+   * @returns The response from the engine.
+   */
   private async dispatch(ctx: RequestContext): Promise<string> {
     this.logger.debug('DiscordRouter.dispatch', { userId: ctx.userId, guildId: ctx.guild.id });
     if (!(await this.hasPermission(ctx))) {
@@ -143,11 +180,21 @@ export class DiscordRouter {
     }
   }
 
+  /**
+   * Checks if the channel is allowed.
+   * @param ctx - The context for the request.
+   * @returns True if the channel is allowed, false otherwise.
+   */
   private async inAllowedChannel(ctx: RequestContext): Promise<boolean> {
     if (!this.allowedChannelsFn) return true;
     return (await this.allowedChannelsFn(ctx.guild)).includes(ctx.channel.id);
   }
 
+  /**
+   * Checks if the user has permission.
+   * @param ctx - The context for the request.
+   * @returns True if the user has permission, false otherwise.
+   */
   private async hasPermission(ctx: RequestContext): Promise<boolean> {
     if (!ctx.member) return false;
 
@@ -176,6 +223,11 @@ export class DiscordRouter {
     }
   }
 
+  /**
+   * Sends the response to the message.
+   * @param message - The message to send the response to.
+   * @param response - The response to send.
+   */
   private async sendMessageResponse(message: Message, response: string): Promise<void> {
     const chunks = splitMessage(response);
 
@@ -191,6 +243,11 @@ export class DiscordRouter {
     }
   }
 
+  /**
+   * Sends the response to the interaction.
+   * @param interaction - The interaction to send the response to.
+   * @param response - The response to send.
+   */
   private async sendInteractionResponse(interaction: Interaction, response: string): Promise<void> {
     if (!interaction.isChatInputCommand()) return;
 
@@ -228,6 +285,10 @@ export class DiscordRouter {
     }
   }
 
+  /**
+   * Sets up the slash commands.
+   * @param client - The Discord client.
+   */
   private setupSlashCommands(client: Client): void {
     const cmd = new SlashCommandBuilder()
       .setName(this.activator)

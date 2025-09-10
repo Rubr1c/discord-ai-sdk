@@ -2,9 +2,16 @@ import { AIError } from './error';
 import type { LogLevel, Logger } from './types';
 import { LOG_LEVEL_ORDER } from './types';
 
+/**
+ * Console logger.
+ */
 export class ConsoleLogger implements Logger {
   private level: LogLevel;
 
+  /**
+   * Creates a console logger.
+   * @param level - The level of the logger. @default 'info'
+   */
   constructor(level: LogLevel = 'info') {
     this.level = level;
     if (process.env.LOG_LEVEL) {
@@ -12,6 +19,11 @@ export class ConsoleLogger implements Logger {
     }
   }
 
+  /**
+   * Checks if a log level should be logged.
+   * @param level - The level to check.
+   * @returns True if the level should be logged, false otherwise.
+   */
   private shouldLog(level: LogLevel): boolean {
     return LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[this.level];
   }

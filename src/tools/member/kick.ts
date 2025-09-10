@@ -3,6 +3,11 @@ import { type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
 
+/**
+ * Creates a tool to kick a member.
+ * @param guild - The guild.
+ * @returns The tool binded to the guild.
+ */
 export function kickMemberTool(guild: Guild): Tool {
   return tool({
     description: 'kick a member from the server',
