@@ -143,11 +143,11 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
   }
 
   /**
-   * Sets the safety mode cap function.
-   * @param cap - The safety mode cap function.
+   * Sets the safety mode cap or function to set the safety mode cap.
+   * @param cap - The safety mode cap or function.
    */
-  public setSafetyModeCapFn(cap: ((guild: Guild) => Promise<Safety>) | Safety) {
+  public setSafetyModeCap(cap: ((guild: Guild) => Promise<Safety>) | Safety) {
     this.safetyModeCap = cap;
-    this.logger.info('ToolRegistry.setSafetyModeCapFn');
+    this.logger.info('ToolRegistry.setSafetyModeCap');
   }
 }
