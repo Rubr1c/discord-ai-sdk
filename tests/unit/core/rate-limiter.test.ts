@@ -57,8 +57,16 @@ describe('RateLimiter', () => {
   });
 
   it('resetAll should reset the rate limit for all users', async () => {
-    const ctx = makeContext({ guild: createFakeGuild(), channel: createFakeTextChannel(), userId: '1' });
-    const ctx2 = makeContext({ guild: createFakeGuild(), channel: createFakeTextChannel(), userId: '2' });
+    const ctx = makeContext({
+      guild: createFakeGuild(),
+      channel: createFakeTextChannel(),
+      userId: '1',
+    });
+    const ctx2 = makeContext({
+      guild: createFakeGuild(),
+      channel: createFakeTextChannel(),
+      userId: '2',
+    });
     const rateLimiter = new RateLimiter({ limitCount: 1, windowMs: 1000 });
     for (let i = 0; i < 2; i++) {
       await rateLimiter.isRateLimited(ctx);

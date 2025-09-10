@@ -46,6 +46,15 @@ export function createFakeTextChannel(init?: Partial<FakeTextChannel>): GuildBas
   return self as unknown as GuildBasedChannel;
 }
 
+export function createFakeNonTextChannel(init?: { id?: string; name?: string }): GuildBasedChannel {
+  const ch = {
+    id: init?.id ?? '2000',
+    name: init?.name ?? 'voice',
+    isTextBased: () => false,
+  } as const;
+  return ch as unknown as GuildBasedChannel;
+}
+
 export function createFakeGuild(channels: Record<string, GuildBasedChannel> = {}): Guild {
   const channelMap = new Map(Object.entries(channels).map(([id, ch]) => [id, ch]));
   const guildLike = {
