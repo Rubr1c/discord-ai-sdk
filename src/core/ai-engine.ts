@@ -210,51 +210,51 @@ export class AIEngine {
     return 'Tool executed successfully';
   }
 
-  public get getLogger(): Logger {
+  public getLogger(): Logger {
     return this.logger;
   }
 
-  public get getPromptBuilder(): PromptBuilder {
+  public getPromptBuilder(): PromptBuilder {
     return this.promptBuilder;
   }
 
-  public get getRateLimiter(): RateLimiter {
+  public getRateLimiter(): RateLimiter {
     return this.rateLimiter;
   }
 
-  public get getToolRegistry(): ToolRegistry {
+  public getToolRegistry(): ToolRegistry {
     return this.toolRegistry;
   }
 
-  public get getModel(): LanguageModel {
+  public getModel(): LanguageModel {
     return this.model;
   }
 
-  public get getConfig() {
+  public getConfig() {
     return this.config;
   }
 
-  public set setLogger(logger: Logger) {
+  public setLogger(logger: Logger) {
     this.logger = logger;
   }
 
-  public set setPromptBuilder(promptBuilder: PromptBuilder) {
+  public setPromptBuilder(promptBuilder: PromptBuilder) {
     this.promptBuilder = promptBuilder;
   }
 
-  public set setToolRegistry(toolRegistry: ToolRegistry) {
+  public setToolRegistry(toolRegistry: ToolRegistry) {
     this.toolRegistry = toolRegistry;
   }
 
-  public set setRateLimiter(rateLimiter: RateLimiter) {
+  public setRateLimiter(rateLimiter: RateLimiter) {
     this.rateLimiter = rateLimiter;
   }
 
-  public set setModel(model: LanguageModel) {
+  public setModel(model: LanguageModel) {
     this.model = model;
   }
 
-  public set setConfig(config: {
+  public setConfig(config: {
     maxRetries?: number;
     maxSteps?: number;
     temperature?: number;

@@ -20,10 +20,8 @@ pnpm add discord-ai-sdk
 # peers
 pnpm add ai discord.js
 
-# choose a model provider for the AI SDK (one of)
+# choose any model provider from ai sdk
 pnpm add @ai-sdk/openai
-# or
-pnpm add @ai-sdk/google
 ```
 
 Requirements: Node.js 18.17+ or 20+
@@ -31,7 +29,6 @@ Requirements: Node.js 18.17+ or 20+
 ### Quickstart
 
 ```ts
-// src/main.ts
 import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { AIEngine, DiscordRouter, PromptBuilder } from 'discord-ai-sdk';
 import { openai } from '@ai-sdk/openai'; // model of choice from ai sdk

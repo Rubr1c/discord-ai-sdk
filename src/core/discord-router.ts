@@ -11,7 +11,6 @@ import { type BotMode, type Logger, type RequestContext } from './types';
 import { AIError } from './error';
 import { AIEngine } from './ai-engine';
 import { splitMessage } from './utils/message';
-import { ConsoleLogger } from './console-logger';
 
 /**
  * Configuration for the Discord router.
@@ -71,7 +70,7 @@ export class DiscordRouter {
     this.allowedChannelsFn = allowedChannelsFn;
     this.ephemeralReplies = ephemeralReplies ?? false;
     this.engine = engine;
-    this.logger = logger ?? new ConsoleLogger();
+    this.logger = logger ?? engine.getLogger();
   }
 
   /**
