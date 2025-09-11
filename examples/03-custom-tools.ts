@@ -5,6 +5,8 @@ import { AIEngine, createTool, discordApiTools, DiscordRouter, ToolRegistry } fr
 import { openai } from '@ai-sdk/openai';
 import { tool } from 'ai';
 import { z } from 'zod';
+// @ts-expect-error - prisma is not set up in this example project
+import { prisma } from './prisma';
 
 const client = new Client({
   // intents are required for the tools to work
@@ -35,6 +37,47 @@ const toolRegistry = new ToolRegistry({
     ), // safety: 'low' | 'mid' | 'high'
   },
 });
+
+toolRegistry.addTool(
+  'myTool2',
+  createTool(
+    (guild) =>
+      tool({
+        description: 'my tool',
+        inputSchema: z.object({
+          name: z.string(),
+        }),
+        execute: async ({ name }) => {
+          return { summary: `[${guild.name}] Hello ${name}` };
+        },
+      }),
+    'low',
+  ),
+  true, // overwrite the tool if it already exists
+);
+
+toolRegistry.removeTool('myTool2');
+
+// set the safety mode cap function
+toolRegistry.setSafetyModeCap(async (guild) => {
+  const guildData = await prisma.guilds.findUnique({
+    where: {
+      id: guild.id,
+    },
+  });
+  return guildData?.safetyModeCap ?? 'high';
+});
+//or set the safety mode cap globally with a string
+toolRegistry.setSafetyModeCap('low');
+
+// return a single tool
+toolRegistry.getTool('myTool2');
+
+// return all tools
+toolRegistry.getAllTools();
+
+// @ts-expect-error - missing context
+toolRegistry.getAllAvailableTools(context);
 
 const engine = new AIEngine({
   model: openai('gpt-4o'),
