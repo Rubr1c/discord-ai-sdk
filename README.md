@@ -1,69 +1,40 @@
 # Discord AI SDK
 
-TypeScript SDK that acts as an AI middleware between Discord.js and the Vercel AI SDK.
+TypeScript SDK that connects Discord.js with the Vercel AI SDK to let AI safely perform Discord actions (channels, roles, members, messages, server) with guardrails.
 
-> You provide prompts; it calls the model, orchestrates Discord tools (channels, roles, messages, members, server), enforces limits/permissions, and returns clean responses. Stateless and extensible per guild.
+### Features
 
----
+- **AI engine**: step limits, retries, temperature/tokens, post-processing
+- **Prompt builder**: strong system prompt + optional user rules
+- **Tool registry**: built-in tools + custom tools with safety caps (`low`/`mid`/`high`)
+- **Discord router**: message or slash modes, permission checks, channel gating, ephemeral replies, safe long-message splitting
+- **Rate limiting**: per-user, overridable
+- **Pluggable logging**: set via `LOG_LEVEL` or `ConsoleLogger`
 
-## Table of Contents
-
-- [Features](#features)
-- [Installation](#installation)
-- [Quickstart](#quickstart)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Core Concepts](#core-concepts)
-- [Examples](#examples)
-- [API Reference](#api-reference)
-- [Error Handling](#error-handling)
-- [Security](#security)
-- [Rate Limiting](#rate-limiting)
-- [Logging](#logging)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [Code of Conduct](#code-of-conduct)
-- [Security Policy](#security-policy)
-- [License](#license)
-
----
-
-## Features
-
-- AI engine: wraps model calls, step limits, retries, temperature/tokens, and post-processing
-- Prompt builder: base system prompt + user rules; encourages multi-step tool usage
-- Tool registry: register built-in/custom tools; per-guild safety cap (low/mid/high)
-- Discord router: message/slash modes, role/permission checks, channel gating, ephemeral replies, long-message splitting
-- Rate limiting: per-user in-memory limiter with custom provider, reset helpers, logging
-- Logging: pluggable Logger with configurable log level
-- Standardized tool outputs: `{ summary: string, data?: unknown }`
-- Built-in tools: channels, categories, roles, members, messages, server info/rename, emojis/stickers
-- Extensibility: add your own tools, override prompts/rules, set per-guild safety/permissions
-
----
-
-## Installation
+### Installation
 
 ```bash
-# with pnpm
+# library
 pnpm add discord-ai-sdk
 
-# peer deps
+# peers
 pnpm add ai discord.js
+
+# choose a model provider for the AI SDK (one of)
+pnpm add @ai-sdk/openai
+# or
+pnpm add @ai-sdk/google
 ```
 
-> Requirements: Node.js 18.17+ or 20+
+Requirements: Node.js 18.17+ or 20+
 
----
-
-## Quickstart
-
-Minimal example showing the primary entry point.
+### Quickstart
 
 ```ts
+// src/main.ts
 import { Client, GatewayIntentBits, Events } from 'discord.js';
 import { AIEngine, DiscordRouter, PromptBuilder } from 'discord-ai-sdk';
-import { google } from '@ai-sdk/google';
+import { openai } from '@ai-sdk/openai'; // model of choice from ai sdk
 
 const client = new Client({
   intents: [
@@ -75,14 +46,18 @@ const client = new Client({
 });
 
 const engine = new AIEngine({
-  model: google('gemini-2.5-flash'),
+  model: openai('gpt-4o'),
+  // Optional tuning: maxSteps: 5, maxRetries: 2, temperature: 0, maxTokens: 400
   promptBuilder: new PromptBuilder(),
 });
 
 const router = new DiscordRouter({
-  mode: 'slash',
-  activator: 'assist',
+  mode: 'slash', // 'slash' | 'message'
+  activator: 'assist', // slash command name or message prefix
   engine,
+  // optional: ephemeralReplies: true,
+  // optional: requiredRoleFn: async (g) => 'ROLE_ID',
+  // optional: allowedChannelsFn: async (g) => ['CHANNEL_ID'],
 });
 
 client.once(Events.ClientReady, () => {
@@ -92,151 +67,72 @@ client.once(Events.ClientReady, () => {
 client.login(process.env.DISCORD_TOKEN);
 ```
 
-Run:
+Run your bot:
 
 ```bash
 pnpm tsx src/main.ts
 ```
 
----
+Environment variables:
 
-## Configuration
-
-Describe how to configure the SDK (env vars, options, safety caps, etc.).
-
-### Environment Variables
-
-| Name            | Required | Default | Description                                                                                     |
-| --------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `DISCORD_TOKEN` | yes      | —       | Discord bot token                                                                               |
-| `AI_API_KEY`    | yes      | —       | API key for your AI SDK model provider (e.g., `OPENAI_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`) |
-| `LOG_LEVEL`     | no       | `info`  | Log level: `debug` \| `info` \| `warn` \| `error`                                               |
-
-### Programmatic Options
-
-```ts
-// AI engine options (all optional except model)
-new AIEngine({
-  model, // LanguageModel from `ai`
-  maxSteps: 5,
-  maxRetries: 2,
-  temperature: 0,
-  maxTokens: 400,
-  logger: new ConsoleLogger('info'), // or use LOG_LEVEL env var
-});
-
-// Router options
-new DiscordRouter({
-  mode: 'slash', // 'slash' | 'message'
-  activator: 'assist', // slash name or message prefix
-  requiredRoleFn: async (g) => 'ROLE_ID',
-  allowedChannelsFn: async (g) => ['CHANNEL_ID'],
-  ephemeralReplies: true,
-  engine,
-});
+```bash
+DISCORD_TOKEN=...            # from your Discord application
+OPENAI_API_KEY=...           # or any model from ai sdk...
+LOG_LEVEL=info               # debug | info | warn | error (optional)
 ```
 
----
+### Configuration (at a glance)
 
-## Usage
+- **Engine**: `maxSteps`, `maxRetries`, `temperature`, `maxTokens`, `promptBuilder`, `toolRegistry`, `rateLimiter`
+- **Router**: `mode`, `activator`, `requiredRoleFn`, `allowedChannelsFn`, `ephemeralReplies`, `logger`
+- **Rate limiter**: defaults to 3 requests / 60s per user; override with
+  ```ts
+  import { RateLimiter } from 'discord-ai-sdk';
+  const engine = new AIEngine({
+    model,
+    rateLimiter: new RateLimiter({
+      limitCount: 5,
+      windowMs: 60_000,
+      // optional: customRateLimits: async (userId, guild) => ({ limitCount: 3, windowMs: 30_000 })
+    }),
+  });
+  ```
 
-### Register a custom tool
+### Custom tools (optional)
+
+You can add your own tools alongside the built-ins.
 
 ```ts
-import { ToolRegistry, createTool, SAFETY, discordApiTools } from 'discord-ai-sdk';
-import { type Tool, tool } from 'ai';
+import { ToolRegistry, createTool, discordApiTools } from 'discord-ai-sdk';
+import type { Guild } from 'discord.js';
+import { tool, type Tool } from 'ai';
 
-function customTool(guild: Guild): Tool {
+function myCustomTool(guild: Guild): Tool {
   return tool({
-    // tool from ai sdk
+    /* ... */
   });
 }
 
-const registry = new ToolRegistry({
+const toolRegistry = new ToolRegistry({
   tools: {
-    ...discordApiTools, // if you want to keep the built in tools
-    myTool: createTool(customTool, 'low'), // safety: 'low' | 'mid' | 'high'
+    ...discordApiTools,
+    myTool: createTool(myCustomTool, 'low'), // safety: 'low' | 'mid' | 'high'
   },
 });
 ```
 
----
+### Useful links
 
-## Core Concepts
-
-- AIEngine: orchestrates model calls, tools, and post-processing
-- DiscordRouter: wires Discord events to the engine (slash/message modes)
-- ToolRegistry: registers built-in/custom tools and filters by safety cap
-- PromptBuilder: composes system and user prompts
-- Safety levels: low/mid/high; router/registry enforce tool availability
-
----
-
-## Examples
-
-- `examples/`
-
----
-
-## API Reference
-
-- Key exports from `discord-ai-sdk`:
-  - `AIEngine`, `DiscordRouter`, `PromptBuilder`, `RateLimiter`, `ToolRegistry`, `ConsoleLogger`
-  - `discordApiTools`, `createTool`
-  - `SAFETY`
-  - Types: `AIEngineProps`, `LLMResult`, `DiscordRouterProps`, `ToolResult`, `AITool`, `RequestContext`
-
-> Public APIs should be documented with TSDoc. See `docs/api/` if generated locally.
-
----
-
-
-## Security
-
-- Follows least-privilege principles; destructive actions require unambiguous targets
-- Respects Discord permissions and role checks; do not bypass or simulate permissions
-- Tools are filtered by per-guild safety cap; unavailable tools must not be invoked
-- No secrets committed; use environment variables or secret stores
-
----
-
-## Rate Limiting
-
-- Default policy: per-user 3 requests per 60s (in-memory)
-- Override via `new RateLimiter({ limitCount, windowMs, customRateLimits })`
-
----
+- **AI SDK docs**: [https://ai-sdk.dev/docs](https://ai-sdk.dev/docs)
+- **discord.js guide**: [https://discord.js.org](https://discord.js.org)
+- **AI SDK repo**: [https://github.com/vercel/ai](https://github.com/vercel/ai)
 
 ## Contributing
 
-We welcome contributions! Please:
-
-1. Read `CONTRIBUTING.md`
-2. Follow code style and lint rules
-3. Add/adjust tests where appropriate
-4. Submit a clear PR with context
+contributions are welcome, please read [`Contribution Guidelines`](CONTRIBUTING.md) before you start
 
 ---
 
-## Code of Conduct
+### License
 
-This project adheres to a Code of Conduct. By participating, you are expected to uphold it.
-
-- See: `CODE_OF_CONDUCT.md`
-
----
-
-## Security Policy
-
-Please report vulnerabilities responsibly.
-
-- See: `SECURITY.md`
-- Private disclosures: <security-contact-email-or-link>
-
----
-
-## License
-
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
-
----
+MIT — see [`LICENSE`](LICENSE).
