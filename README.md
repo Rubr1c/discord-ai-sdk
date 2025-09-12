@@ -34,6 +34,7 @@ import { AIEngine, DiscordRouter, PromptBuilder } from 'discord-ai-sdk';
 import { openai } from '@ai-sdk/openai'; // model of choice from ai sdk
 
 const client = new Client({
+  // intents are required for the tools to work
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
