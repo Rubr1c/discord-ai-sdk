@@ -39,6 +39,7 @@
     "format": "prettier --write .",
     "test": "vitest -c vitest.config.ts",
     "test:run": "vitest run -c vitest.config.ts",
+    "docs": "typedoc",
     "prepublishOnly": "pnpm typecheck && pnpm lint && pnpm build"
   },
   "keywords": [
@@ -72,6 +73,7 @@
     "eslint": "^9.9.0",
     "prettier": "^3.3.3",
     "tsup": "^8.5.0",
+    "typedoc": "^0.26.7",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
