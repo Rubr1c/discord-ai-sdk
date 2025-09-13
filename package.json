@@ -1,15 +1,16 @@
 {
   "name": "discord-ai-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "A sdk made to allow ai to interact with discord api for discord bots",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
