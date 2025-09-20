@@ -1,7 +1,7 @@
 import type { AITool, Logger, Safety } from './types';
 import { SAFETY } from './types';
 import type { RequestContext } from './types';
-import { ConsoleLogger } from './console-logger';
+import { ConsoleLogger } from './utils/console-logger';
 import type { Guild } from 'discord.js';
 
 /**

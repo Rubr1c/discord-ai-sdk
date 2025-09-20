@@ -1,6 +1,6 @@
 import type { Guild } from 'discord.js';
 import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './console-logger';
+import { ConsoleLogger } from './utils/console-logger';
 
 /**
  * Rate limit options.

@@ -43,7 +43,6 @@ export class DiscordRouter {
   private ephemeralReplies: boolean;
   private engine: AIEngine;
   private logger: Logger;
-
   /**
    * Creates a Discord router.
    * @param options - The options for the Discord router.
@@ -158,6 +157,11 @@ export class DiscordRouter {
    */
   private async dispatch(ctx: RequestContext): Promise<string> {
     this.logger.debug('DiscordRouter.dispatch', { userId: ctx.userId, guildId: ctx.guild.id });
+
+    if (this.engine.auditLogger) {
+      this.engine.auditLogger.setGuild(ctx.guild);
+    }
+
     if (!(await this.hasPermission(ctx))) {
       throw new AIError('NO_PERMISSION', `User[${ctx.userId}] has no permission`);
     }

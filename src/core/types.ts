@@ -31,11 +31,17 @@ export interface AITool {
 export type BotMode = 'slash' | 'message';
 
 export interface Logger {
+
+  level: LogLevel;
+
+  shouldLog(level: LogLevel): boolean;
+  
   debug(message: string, meta?: unknown): void;
   info(message: string, meta?: unknown): void;
   warn(message: string, meta?: unknown): void;
   error(message: string | Error, meta?: unknown): void;
 }
+
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 

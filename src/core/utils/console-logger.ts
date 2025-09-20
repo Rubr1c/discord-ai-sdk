@@ -1,12 +1,12 @@
-import { AIError } from './error';
-import type { LogLevel, Logger } from './types';
-import { LOG_LEVEL_ORDER } from './types';
+import { AIError } from '../error';
+import type { LogLevel, Logger } from '../types';
+import { LOG_LEVEL_ORDER } from '../types';
 
 /**
  * Console logger.
  */
 export class ConsoleLogger implements Logger {
-  private level: LogLevel;
+  public level: LogLevel;
 
   /**
    * Creates a console logger.
@@ -24,7 +24,7 @@ export class ConsoleLogger implements Logger {
    * @param level - The level to check.
    * @returns True if the level should be logged, false otherwise.
    */
-  private shouldLog(level: LogLevel): boolean {
+  public shouldLog(level: LogLevel): boolean {
     return LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[this.level];
   }
 

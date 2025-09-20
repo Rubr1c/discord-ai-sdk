@@ -1,5 +1,5 @@
 import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './console-logger';
+import { ConsoleLogger } from './utils/console-logger';
 
 /**
  * Prompt builder.

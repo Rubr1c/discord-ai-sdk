@@ -5,7 +5,8 @@ import { ToolRegistry } from './tool-registry';
 import { PromptBuilder } from './prompt-builder';
 import { AIError } from './error';
 import { discordApiTools } from '../tools';
-import { ConsoleLogger } from './console-logger';
+import { ConsoleLogger } from './utils/console-logger';
+import { AuditLogger } from './utils/audit-logger';
 
 /**
  * Configuration for the AI engine.
@@ -37,6 +38,9 @@ export interface AIEngineProps {
 
   /** Logger. @default new ConsoleLogger() */
   logger?: Logger;
+
+  /** Audit logger. @default undefined */
+  auditLogger?: AuditLogger;
 }
 
 /**
@@ -59,6 +63,7 @@ export class AIEngine {
   private toolRegistry: ToolRegistry;
   private rateLimiter: RateLimiter;
   private logger: Logger;
+  public auditLogger: AuditLogger | undefined;
   private config: {
     maxRetries: number;
     maxSteps: number;
@@ -85,6 +90,8 @@ export class AIEngine {
     this.rateLimiter =
       options.rateLimiter ||
       new RateLimiter({ limitCount: 3, windowMs: 60000, logger: this.logger });
+
+    this.auditLogger = options.auditLogger;
 
     this.config = {
       maxRetries: options.maxRetries ?? 2,
@@ -144,6 +151,8 @@ export class AIEngine {
 
       this.logger.info('AIEngine.callModel completed');
 
+      await this.auditLogger?.info('AIEngine.callModel completed');
+
       return {
         text: result.text,
         toolResults: result.toolResults?.map((tr) => ({
@@ -153,6 +162,7 @@ export class AIEngine {
       };
     } catch (error) {
       this.logger.error('AIEngine.callModel failed', error as Error);
+      await this.auditLogger?.error('AIEngine.callModel failed', error as Error);
       throw new AIError(
         'MODEL_ERROR',
         `Model execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
