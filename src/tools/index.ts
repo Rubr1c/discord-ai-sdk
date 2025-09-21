@@ -32,6 +32,7 @@ import { getMessagesTool } from './message/get';
 import { pinMessageTool } from './message/pin';
 import { unpinMessageTool } from './message/unpin';
 import { deleteMessageTool } from './message/delete';
+import { manageChannelPermissionsTool } from './channel/permission';
 
 /**
  * Creates a tool.
@@ -62,6 +63,7 @@ export const discordApiTools = {
   deleteChannel: createTool(deleteChannelTool, 'high'),
   renameChannel: createTool(renameChannelTool, 'mid'),
   moveChannel: createTool(moveChannelTool, 'mid'),
+  manageChannelPermissions: createTool(manageChannelPermissionsTool, 'high'),
   getMembers: createTool(getMembersTool, 'low'),
   kickMember: createTool(kickMemberTool, 'high'),
   banMember: createTool(banMemberTool, 'high'),
