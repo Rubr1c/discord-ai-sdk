@@ -31,7 +31,6 @@ export interface AITool {
 export type BotMode = 'slash' | 'message';
 
 export interface Logger {
-
   level: LogLevel;
 
   shouldLog(level: LogLevel): boolean;

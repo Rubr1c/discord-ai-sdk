@@ -11,6 +11,7 @@ import { type BotMode, type Logger, type RequestContext } from './types';
 import { AIError } from './error';
 import { AIEngine } from './ai-engine';
 import { splitMessage } from './utils/message';
+import type { AuditLogger } from './utils/audit-logger';
 
 /**
  * Configuration for the Discord router.
@@ -18,18 +19,27 @@ import { splitMessage } from './utils/message';
 export interface DiscordRouterProps {
   /** The mode of the router. */
   mode: BotMode;
+
   /** The engine of the router. */
   engine: AIEngine;
+
   /** The activator of the router. */
   activator: string;
+
   /** The required role function of the router. */
   requiredRoleFn?: (guild: Guild) => Promise<string>;
+
   /** The allowed channels function of the router. */
   allowedChannelsFn?: (guild: Guild) => Promise<string[]>;
+
   /** The ephemeral replies of the router. @default false */
   ephemeralReplies?: boolean;
+
   /** The logger of the router. @default new ConsoleLogger() */
   logger?: Logger;
+
+  /** The audit logger of the router. @default undefined */
+  auditLogger?: AuditLogger;
 }
 
 /**
@@ -43,6 +53,7 @@ export class DiscordRouter {
   private ephemeralReplies: boolean;
   private engine: AIEngine;
   private logger: Logger;
+  private auditLogger: AuditLogger | undefined;
   /**
    * Creates a Discord router.
    * @param options - The options for the Discord router.
@@ -62,6 +73,7 @@ export class DiscordRouter {
     allowedChannelsFn,
     ephemeralReplies,
     logger,
+    auditLogger,
   }: DiscordRouterProps) {
     this.mode = mode;
     this.activator = activator;
@@ -70,6 +82,7 @@ export class DiscordRouter {
     this.ephemeralReplies = ephemeralReplies ?? false;
     this.engine = engine;
     this.logger = logger ?? engine.getLogger();
+    this.auditLogger = auditLogger ?? engine.getAuditLogger();
   }
 
   /**
@@ -78,6 +91,7 @@ export class DiscordRouter {
    */
   public subscribe(client: Client): void {
     this.logger.info('DiscordRouter.subscribe', { mode: this.mode, activator: this.activator });
+    this.auditLogger?.info('DiscordRouter.subscribe', { mode: this.mode, activator: this.activator });
     switch (this.mode) {
       case 'message':
         client.on(Events.MessageCreate, async (message: Message) => {
@@ -94,6 +108,7 @@ export class DiscordRouter {
             await this.sendMessageResponse(message, response);
           } catch (error) {
             this.logger.error('Error handling message:', error as Error);
+            this.auditLogger?.error('Error handling message:', error as Error);
             if (error instanceof AIError) {
               await message.reply(`Error: ${error.message}`);
             } else {
@@ -157,9 +172,10 @@ export class DiscordRouter {
    */
   private async dispatch(ctx: RequestContext): Promise<string> {
     this.logger.debug('DiscordRouter.dispatch', { userId: ctx.userId, guildId: ctx.guild.id });
+    this.auditLogger?.debug('DiscordRouter.dispatch', { userId: ctx.userId, guildId: ctx.guild.id });
 
-    if (this.engine.auditLogger) {
-      this.engine.auditLogger.setGuild(ctx.guild);
+    if (this.auditLogger) {
+      this.auditLogger.setGuild(ctx.guild);
     }
 
     if (!(await this.hasPermission(ctx))) {
@@ -175,6 +191,7 @@ export class DiscordRouter {
       return response;
     } catch (err) {
       this.logger.error('DiscordRouter.dispatch error', err as Error);
+      this.auditLogger?.error('DiscordRouter.dispatch error', err as Error);
       if (err instanceof AIError) {
         return `Error: ${err.message}`;
       } else {
@@ -307,8 +324,10 @@ export class DiscordRouter {
       try {
         await client.application?.commands.create(cmd);
         this.logger.info('Slash command created');
+        this.auditLogger?.info('Slash command created');
       } catch (error) {
         this.logger.error('Failed to register slash command:', error as Error);
+        this.auditLogger?.error('Failed to register slash command:', error as Error);
       }
     });
 
@@ -331,7 +350,7 @@ export class DiscordRouter {
         await this.sendInteractionResponse(interaction, response);
       } catch (error) {
         this.logger.error('Error handling slash command:', error as Error);
-
+        this.auditLogger?.error('Error handling slash command:', error as Error);
         const errorMsg =
           error instanceof AIError
             ? `Error: ${error.message}`
@@ -348,6 +367,7 @@ export class DiscordRouter {
           }
         } catch (replyError) {
           this.logger.error('Failed to send error response:', replyError as Error);
+          this.auditLogger?.error('Failed to send error response:', replyError as Error);
         }
       }
     });

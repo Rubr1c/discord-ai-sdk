@@ -12,8 +12,10 @@ export interface ToolRegistryProps<
 > {
   /** The tools to register. */
   tools?: TInitialTools;
+
   /** The logger. */
   logger?: Logger;
+  
   /** The safety mode cap. function or string @default 'high' */
   safetyModeCap?: ((guild: Guild) => Promise<Safety>) | Safety;
 }

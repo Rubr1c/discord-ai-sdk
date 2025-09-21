@@ -79,6 +79,7 @@ export class AIEngine {
    */
   constructor(options: AIEngineProps) {
     this.model = options.model;
+    this.auditLogger = options.auditLogger;
     this.logger = options.logger ?? new ConsoleLogger();
     this.promptBuilder = options.promptBuilder || new PromptBuilder('', false, this.logger);
     this.toolRegistry =
@@ -90,8 +91,6 @@ export class AIEngine {
     this.rateLimiter =
       options.rateLimiter ||
       new RateLimiter({ limitCount: 3, windowMs: 60000, logger: this.logger });
-
-    this.auditLogger = options.auditLogger;
 
     this.config = {
       maxRetries: options.maxRetries ?? 2,
@@ -244,6 +243,10 @@ export class AIEngine {
     return this.config;
   }
 
+  public getAuditLogger(): AuditLogger | undefined {
+    return this.auditLogger;
+  }
+
   public setLogger(logger: Logger) {
     this.logger = logger;
   }
@@ -276,6 +279,10 @@ export class AIEngine {
       temperature: config.temperature ?? this.config.temperature,
       maxTokens: config.maxTokens ?? this.config.maxTokens,
     };
+  }
+
+  public setAuditLogger(auditLogger: AuditLogger) {
+    this.auditLogger = auditLogger;
   }
 
   /**

@@ -49,7 +49,7 @@ export class AuditLogger implements Logger {
         const channel = await this.guild.channels.fetch(channelId);
 
         const embed = new EmbedBuilder()
-          .setColor(0x0099ff)
+          .setColor(0x808080)
           .setTitle('Debug')
           .setDescription(message)
           .setTimestamp();
@@ -109,7 +109,7 @@ export class AuditLogger implements Logger {
         const channel = await this.guild.channels.fetch(channelId);
 
         const embed = new EmbedBuilder()
-          .setColor(0x0099ff)
+          .setColor(0xffa500)
           .setTitle('Warn')
           .setDescription(message)
           .setTimestamp();
@@ -139,7 +139,7 @@ export class AuditLogger implements Logger {
         const channel = await this.guild.channels.fetch(channelId);
 
         const embed = new EmbedBuilder()
-          .setColor(0x0099ff)
+          .setColor(0xff0000)
           .setTitle('Error')
           .setDescription(message instanceof Error ? message.message : message)
           .setTimestamp();
