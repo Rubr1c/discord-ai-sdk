@@ -85,8 +85,7 @@ export class AuditLogger extends BaseLogger {
     const embed = new EmbedBuilder()
       .setColor(colors[level])
       .setTitle(level.toUpperCase())
-      .setDescription(message)
-      .setTimestamp();
+      .setDescription(`**[${this.formatTimestamp()}]** ${message}`);
 
     if (meta !== undefined && meta !== null) {
       const metaString = this.formatMeta(meta);

@@ -9,6 +9,18 @@ export abstract class BaseLogger implements Logger {
     this.level = (process.env.LOG_LEVEL as LogLevel) || level;
   }
 
+  /**
+   * Formats a timestamp for logging.
+   */
+  protected formatTimestamp(): string {
+    return new Date().toISOString();
+  }
+  
+  /**
+   * Checks if a log level should be logged.
+   * @param level - The level to check.
+   * @returns True if the level should be logged, false otherwise.
+   */
   public shouldLog(level: LogLevel): boolean {
     return LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[this.level];
   }
