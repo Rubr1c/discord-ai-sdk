@@ -5,8 +5,8 @@ import { ToolRegistry } from './tool-registry';
 import { PromptBuilder } from './prompt-builder';
 import { AIError } from './error';
 import { discordApiTools } from '../tools';
-import { ConsoleLogger } from './utils/console-logger';
-import { AuditLogger } from './utils/audit-logger';
+import { ConsoleLogger } from './utils/logger/console-logger';
+import type { CompositeLogger } from './utils/logger/composite-logger';
 
 /**
  * Configuration for the AI engine.
@@ -37,10 +37,7 @@ export interface AIEngineProps {
   maxTokens?: number;
 
   /** Logger. @default new ConsoleLogger() */
-  logger?: Logger;
-
-  /** Audit logger. @default undefined */
-  auditLogger?: AuditLogger;
+  logger?: Logger | CompositeLogger;
 }
 
 /**
@@ -62,8 +59,7 @@ export class AIEngine {
   private promptBuilder: PromptBuilder;
   private toolRegistry: ToolRegistry;
   private rateLimiter: RateLimiter;
-  private logger: Logger;
-  public auditLogger: AuditLogger | undefined;
+  public logger: Logger | CompositeLogger;
   private config: {
     maxRetries: number;
     maxSteps: number;
@@ -79,7 +75,6 @@ export class AIEngine {
    */
   constructor(options: AIEngineProps) {
     this.model = options.model;
-    this.auditLogger = options.auditLogger;
     this.logger = options.logger ?? new ConsoleLogger();
     this.promptBuilder = options.promptBuilder || new PromptBuilder('', false, this.logger);
     this.toolRegistry =
@@ -150,8 +145,6 @@ export class AIEngine {
 
       this.logger.info('AIEngine.callModel completed');
 
-      await this.auditLogger?.info('AIEngine.callModel completed');
-
       return {
         text: result.text,
         toolResults: result.toolResults?.map((tr) => ({
@@ -161,7 +154,6 @@ export class AIEngine {
       };
     } catch (error) {
       this.logger.error('AIEngine.callModel failed', error as Error);
-      await this.auditLogger?.error('AIEngine.callModel failed', error as Error);
       throw new AIError(
         'MODEL_ERROR',
         `Model execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -243,10 +235,6 @@ export class AIEngine {
     return this.config;
   }
 
-  public getAuditLogger(): AuditLogger | undefined {
-    return this.auditLogger;
-  }
-
   public setLogger(logger: Logger) {
     this.logger = logger;
   }
@@ -279,10 +267,6 @@ export class AIEngine {
       temperature: config.temperature ?? this.config.temperature,
       maxTokens: config.maxTokens ?? this.config.maxTokens,
     };
-  }
-
-  public setAuditLogger(auditLogger: AuditLogger) {
-    this.auditLogger = auditLogger;
   }
 
   /**

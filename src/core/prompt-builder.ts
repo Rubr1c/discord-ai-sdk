@@ -1,5 +1,6 @@
 import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './utils/console-logger';
+import type { CompositeLogger } from './utils/logger/composite-logger';
+import { ConsoleLogger } from './utils/logger/console-logger';
 
 /**
  * Prompt builder.
@@ -43,7 +44,7 @@ export class PromptBuilder {
 
   /** The rules of the prompt builder. */
   private rules: string[] = [];
-  private logger: Logger;
+  public logger: Logger | CompositeLogger;
 
   /**
    * Creates a prompt builder.

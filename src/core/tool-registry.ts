@@ -1,8 +1,9 @@
 import type { AITool, Logger, Safety } from './types';
 import { SAFETY } from './types';
 import type { RequestContext } from './types';
-import { ConsoleLogger } from './utils/console-logger';
+import { ConsoleLogger } from './utils/logger/console-logger';
 import type { Guild } from 'discord.js';
+import type { CompositeLogger } from './utils/logger/composite-logger';
 
 /**
  * Tool registry properties.
@@ -14,8 +15,8 @@ export interface ToolRegistryProps<
   tools?: TInitialTools;
 
   /** The logger. */
-  logger?: Logger;
-  
+  logger?: Logger | CompositeLogger;
+
   /** The safety mode cap. function or string @default 'high' */
   safetyModeCap?: ((guild: Guild) => Promise<Safety>) | Safety;
 }
@@ -26,7 +27,7 @@ export interface ToolRegistryProps<
 export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<string, AITool>> {
   private tools: Record<string, AITool>;
   private safetyModeCap: ((guild: Guild) => Promise<Safety>) | Safety = 'high';
-  private logger: Logger;
+  public logger: Logger | CompositeLogger;
 
   /**
    * Creates a tool registry.

@@ -1,23 +1,14 @@
 import { EmbedBuilder, type Guild } from 'discord.js';
-import { LOG_LEVEL_ORDER, type Logger, type LogLevel } from '../types';
+import { BaseLogger } from './base-logger';
+import type { LogLevel } from '../../types';
 
-export class AuditLogger implements Logger {
+export class AuditLogger extends BaseLogger {
   private auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>;
   private guild: Guild | null = null;
-  public level: LogLevel;
 
   constructor(level: LogLevel, auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>) {
+    super(level);
     this.auditLogFn = auditLogFn;
-    this.level = level;
-  }
-
-  /**
-   * Checks if a log level should be logged.
-   * @param level - The level to check.
-   * @returns True if the level should be logged, false otherwise.
-   */
-  public shouldLog(level: LogLevel): boolean {
-    return LOG_LEVEL_ORDER[level] >= LOG_LEVEL_ORDER[this.level];
   }
 
   public setGuild(guild: Guild) {
@@ -42,25 +33,13 @@ export class AuditLogger implements Logger {
       return;
     }
     try {
-      console.log('fetching channel id');
       const channelId = await this.getChannelId();
       if (channelId) {
-        console.log('fetching channel');
         const channel = await this.guild.channels.fetch(channelId);
 
-        const embed = new EmbedBuilder()
-          .setColor(0x808080)
-          .setTitle('Debug')
-          .setDescription(message)
-          .setTimestamp();
-
-        if (meta !== undefined && meta !== null) {
-          const metaString = typeof meta === 'string' ? meta : JSON.stringify(meta);
-          embed.addFields({ name: 'Meta', value: metaString });
-        }
+        const embed = this.buildEmbed('debug', message, meta);
 
         if (channel?.isTextBased()) {
-          console.log('sending embed');
           await channel.send({ embeds: [embed] });
         }
       }
@@ -79,16 +58,7 @@ export class AuditLogger implements Logger {
       if (channelId) {
         const channel = await this.guild.channels.fetch(channelId);
 
-        const embed = new EmbedBuilder()
-          .setColor(0x0099ff)
-          .setTitle('Info')
-          .setDescription(message)
-          .setTimestamp();
-
-        if (meta !== undefined && meta !== null) {
-          const metaString = typeof meta === 'string' ? meta : JSON.stringify(meta);
-          embed.addFields({ name: 'Meta', value: metaString });
-        }
+        const embed = this.buildEmbed('info', message, meta);
 
         if (channel?.isTextBased()) {
           await channel.send({ embeds: [embed] });
@@ -108,16 +78,7 @@ export class AuditLogger implements Logger {
       if (channelId) {
         const channel = await this.guild.channels.fetch(channelId);
 
-        const embed = new EmbedBuilder()
-          .setColor(0xffa500)
-          .setTitle('Warn')
-          .setDescription(message)
-          .setTimestamp();
-
-        if (meta !== undefined && meta !== null) {
-          const metaString = typeof meta === 'string' ? meta : JSON.stringify(meta);
-          embed.addFields({ name: 'Meta', value: metaString });
-        }
+        const embed = this.buildEmbed('warn', message, meta);
 
         if (channel?.isTextBased()) {
           await channel.send({ embeds: [embed] });
@@ -138,16 +99,11 @@ export class AuditLogger implements Logger {
       if (channelId) {
         const channel = await this.guild.channels.fetch(channelId);
 
-        const embed = new EmbedBuilder()
-          .setColor(0xff0000)
-          .setTitle('Error')
-          .setDescription(message instanceof Error ? message.message : message)
-          .setTimestamp();
-
-        if (meta !== undefined && meta !== null) {
-          const metaString = typeof meta === 'string' ? meta : JSON.stringify(meta);
-          embed.addFields({ name: 'Meta', value: metaString });
-        }
+        const embed = this.buildEmbed(
+          'error',
+          message instanceof Error ? message.message : message,
+          meta,
+        );
 
         if (channel?.isTextBased()) {
           await channel.send({ embeds: [embed] });
@@ -156,5 +112,43 @@ export class AuditLogger implements Logger {
     } catch (error) {
       console.error('Error in audit error logging:', error);
     }
+  }
+
+  private buildEmbed(level: LogLevel, message: string, meta?: unknown): EmbedBuilder {
+    const colors: Record<LogLevel, number> = {
+      debug: 0x808080,
+      info: 0x0099ff,
+      warn: 0xffa500,
+      error: 0xff0000,
+    };
+
+    const embed = new EmbedBuilder()
+      .setColor(colors[level])
+      .setTitle(level.toUpperCase())
+      .setDescription(message)
+      .setTimestamp();
+
+    if (meta !== undefined && meta !== null) {
+      const metaString = this.formatMeta(meta);
+      embed.addFields({ name: 'Meta', value: metaString });
+    }
+
+    return embed;
+  }
+
+  private formatMeta(meta: unknown): string {
+    if (typeof meta === 'string') {
+      return meta;
+    }
+
+    if (typeof meta === 'object' && meta !== null) {
+      const obj = meta as Record<string, unknown>;
+      const fields = Object.entries(obj)
+        .map(([key, value]) => `**${key}:** ${value}`)
+        .join('\n');
+      return fields;
+    }
+
+    return String(meta);
   }
 }

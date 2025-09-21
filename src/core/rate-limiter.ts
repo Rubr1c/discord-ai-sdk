@@ -1,6 +1,7 @@
 import type { Guild } from 'discord.js';
 import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './utils/console-logger';
+import { ConsoleLogger } from './utils/logger/console-logger';
+import type { CompositeLogger } from './utils/logger/composite-logger';
 
 /**
  * Rate limit options.
@@ -22,7 +23,7 @@ export type RateLimitFn = ((userId: string, guild: Guild) => Promise<RateLimitOp
  */
 export interface RateLimiterProps extends RateLimitOpts {
   customRateLimits?: RateLimitFn;
-  logger?: Logger;
+  logger?: Logger | CompositeLogger;
 }
 
 /**
@@ -32,7 +33,7 @@ export class RateLimiter {
   private opts: RateLimitOpts;
   private readonly requestTimestamps = new Map<string, number[]>();
   private customRateLimits: RateLimitFn;
-  private logger: Logger;
+  public logger: Logger | CompositeLogger;
 
   /**
    * Creates a rate limiter.

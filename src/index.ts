@@ -3,8 +3,9 @@ export { DiscordRouter } from './core/discord-router';
 export { PromptBuilder } from './core/prompt-builder';
 export { RateLimiter } from './core/rate-limiter';
 export { ToolRegistry } from './core/tool-registry';
-export { ConsoleLogger } from './core/utils/console-logger';
-export { AuditLogger } from './core/utils/audit-logger';
+export { ConsoleLogger } from './core/utils/logger/console-logger';
+export { AuditLogger } from './core/utils/logger/audit-logger';
+export { CompositeLogger } from './core/utils/logger/composite-logger';
 export type { ToolRegistryProps } from './core/tool-registry';
 export { AIError, ErrorReason } from './core/error';
 
