@@ -8,7 +8,7 @@ export const PermissionSchema = z
   .object(
     Object.fromEntries(
       Object.keys(PermissionsBitField.Flags).map((flag) => [
-        flag, // Keep original flag names
+        flag,
         z.boolean().optional(),
       ]),
     ),

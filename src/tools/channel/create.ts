@@ -31,8 +31,8 @@ export function createChannelTool(guild: Guild): Tool {
           z
             .object({
               id: z.string().describe('Role or user ID'),
-              allow: PermissionSchema.optional().describe('Permissions to allow'),
-              deny: PermissionSchema.optional().describe('Permissions to deny'),
+              allow: PermissionSchema.describe('Permissions to allow'),
+              deny: PermissionSchema.describe('Permissions to deny'),
             })
             .refine((data) => data.allow || data.deny, {
               message: 'At least one of allow or deny must be present',
