@@ -1,5 +1,5 @@
-import { AIError } from '../../error';
-import type { LogLevel } from '../../types';
+import { AIError } from '@/core/error';
+import type { LoggerParams, LogLevel } from '../../types';
 import { BaseLogger } from './base-logger';
 
 /**
@@ -14,27 +14,30 @@ export class ConsoleLogger extends BaseLogger {
     super(level);
   }
 
-  debug(msg: string, meta?: unknown) {
+  debug(params: LoggerParams) {
     if (!this.shouldLog('debug')) return;
-    console.debug(`[DEBUG] ${msg}`, meta ?? '');
+    console.debug(`[DEBUG] ${params.message}`, params.meta ?? '');
   }
 
-  info(msg: string, meta?: unknown) {
+  info(params: LoggerParams) {
     if (!this.shouldLog('info')) return;
-    console.info(`[INFO] ${msg}`, meta ?? '');
+    console.info(`[INFO] ${params.message}`, params.meta ?? '');
   }
 
-  warn(msg: string, meta?: unknown) {
+  warn(params: LoggerParams) {
     if (!this.shouldLog('warn')) return;
-    console.warn(`[WARN] ${msg}`, meta ?? '');
+    console.warn(`[WARN] ${params.message}`, params.meta ?? '');
   }
 
-  error(msg: string | AIError, meta?: unknown) {
+  error(params: LoggerParams) {
     if (!this.shouldLog('error')) return;
-    if (msg instanceof AIError) {
-      console.error(`[ERROR:${msg.getReason()}] ${msg.message}`, { stack: msg.stack, meta });
+    if (params.error instanceof AIError) {
+      console.error(`[ERROR:${params.error.getReason()}] ${params.error.message}`, {
+        stack: params.error.stack,
+        meta: params.meta,
+      });
     } else {
-      console.error(`[ERROR] ${msg}`, meta ?? '');
+      console.error(`[ERROR] ${params.message}`, params.meta ?? '');
     }
   }
 }

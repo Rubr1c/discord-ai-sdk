@@ -55,7 +55,7 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
       throw new Error(`Tool "${name}" already exists`);
     }
     this.tools[name] = tool;
-    this.logger.info('ToolRegistry.addTool', { name });
+    this.logger.info({ message: 'ToolRegistry.addTool', meta: { name } });
   }
 
   /**
@@ -68,7 +68,7 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
     if (this.hasTool(toolName)) {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.tools[toolName];
-      this.logger.info('ToolRegistry.removeTool', { name: toolName });
+      this.logger.info({ message: 'ToolRegistry.removeTool', meta: { name: toolName } });
       return true;
     }
     return false;
@@ -114,7 +114,9 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
         : this.safetyModeCap;
 
     if (safetyMode === 'high') {
-      this.logger.debug('ToolRegistry.getAllAvailableTools: high safety, returning all');
+      this.logger.debug({
+        message: 'ToolRegistry.getAllAvailableTools: high safety, returning all',
+      });
       return this.getAllTools();
     }
 
@@ -128,8 +130,11 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
       }
     }
 
-    this.logger.debug('ToolRegistry.getAllAvailableTools: filtered', {
-      count: Object.keys(availableTools).length,
+    this.logger.debug({
+      message: 'ToolRegistry.getAllAvailableTools: filtered',
+      meta: {
+        count: Object.keys(availableTools).length,
+      },
     });
     return Object.freeze(availableTools);
   }
@@ -140,7 +145,10 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
    */
   public getAllTools(): Readonly<Record<string, AITool>> {
     let allTools = { ...this.tools };
-    this.logger.debug('ToolRegistry.getAllTools', { count: Object.keys(allTools).length });
+    this.logger.debug({
+      message: 'ToolRegistry.getAllTools',
+      meta: { count: Object.keys(allTools).length },
+    });
 
     return Object.freeze(allTools);
   }
@@ -151,6 +159,6 @@ export class ToolRegistry<TInitialTools extends Record<string, AITool> = Record<
    */
   public setSafetyModeCap(cap: ((guild: Guild) => Promise<Safety>) | Safety) {
     this.safetyModeCap = cap;
-    this.logger.info('ToolRegistry.setSafetyModeCap');
+    this.logger.info({ message: 'ToolRegistry.setSafetyModeCap' });
   }
 }

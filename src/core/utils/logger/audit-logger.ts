@@ -1,117 +1,77 @@
 import { EmbedBuilder, type Guild } from 'discord.js';
 import { BaseLogger } from './base-logger';
-import type { LogLevel } from '../../types';
+import type { LoggerParams, LogLevel } from '../../types';
 
 export class AuditLogger extends BaseLogger {
   private auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>;
-  private guild: Guild | null = null;
+  private queue: { embed: EmbedBuilder; guild: Guild }[] = [];
+  private isFlushing = false;
+  private flushInterval = 2000;
 
   constructor(level: LogLevel, auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>) {
     super(level);
     this.auditLogFn = auditLogFn;
+    this.startFlusher();
   }
 
-  public setGuild(guild: Guild) {
-    this.guild = guild;
+  private startFlusher() {
+    setInterval(() => this.flushQueue(), this.flushInterval);
   }
 
-  public async getChannelId(): Promise<string | undefined> {
-    if (!this.guild) {
-      return undefined;
-    }
+  private async flushQueue() {
+    if (this.isFlushing || this.queue.length === 0) return;
+    this.isFlushing = true;
+
+    const item = this.queue.shift();
+    if (!item) return;
+
     try {
-      const result = await this.auditLogFn(this.guild);
-      return result?.channelId;
-    } catch (error) {
-      console.error('Error getting audit channel ID:', error);
-      return undefined;
-    }
-  }
+      const channelId = await this.auditLogFn(item.guild).then((r) => r.channelId);
+      const channel = channelId ? await item.guild.channels.fetch(channelId) : null;
 
-  async debug(message: string, meta?: unknown): Promise<void> {
-    if (!this.guild) {
-      return;
-    }
-    try {
-      const channelId = await this.getChannelId();
-      if (channelId) {
-        const channel = await this.guild.channels.fetch(channelId);
-
-        const embed = this.buildEmbed('debug', message, meta);
-
-        if (channel?.isTextBased()) {
-          await channel.send({ embeds: [embed] });
-        }
+      if (channel?.isTextBased()) {
+        await channel.send({ embeds: [item.embed] });
       }
-    } catch (error) {
-      console.error('Error in audit debug logging:', error);
+    } catch (err) {
+      console.error('Audit log flush failed:', err);
+    } finally {
+      this.isFlushing = false;
     }
   }
 
-  async info(message: string, meta?: unknown): Promise<void> {
-    if (!this.guild) {
-      return;
-    }
-
-    try {
-      const channelId = await this.getChannelId();
-      if (channelId) {
-        const channel = await this.guild.channels.fetch(channelId);
-
-        const embed = this.buildEmbed('info', message, meta);
-
-        if (channel?.isTextBased()) {
-          await channel.send({ embeds: [embed] });
-        }
-      }
-    } catch (error) {
-      console.error('Error in audit info logging:', error);
-    }
-  }
-  async warn(message: string, meta?: unknown): Promise<void> {
-    if (!this.guild) {
-      return;
-    }
-
-    try {
-      const channelId = await this.getChannelId();
-      if (channelId) {
-        const channel = await this.guild.channels.fetch(channelId);
-
-        const embed = this.buildEmbed('warn', message, meta);
-
-        if (channel?.isTextBased()) {
-          await channel.send({ embeds: [embed] });
-        }
-      }
-    } catch (error) {
-      console.error('Error in audit warn logging:', error);
-    }
+  private enqueue({
+    guild,
+    level,
+    message,
+    meta,
+  }: {
+    level: LogLevel;
+    message: string;
+    guild?: Guild;
+    meta?: unknown;
+  }) {
+    if (!guild || !this.shouldLog(level)) return;
+    const embed = this.buildEmbed(level, message, meta);
+    this.queue.push({ embed, guild });
   }
 
-  async error(message: string | Error, meta?: unknown): Promise<void> {
-    if (!this.guild) {
-      return;
-    }
-
-    try {
-      const channelId = await this.getChannelId();
-      if (channelId) {
-        const channel = await this.guild.channels.fetch(channelId);
-
-        const embed = this.buildEmbed(
-          'error',
-          message instanceof Error ? message.message : message,
-          meta,
-        );
-
-        if (channel?.isTextBased()) {
-          await channel.send({ embeds: [embed] });
-        }
-      }
-    } catch (error) {
-      console.error('Error in audit error logging:', error);
-    }
+  debug(params: LoggerParams) {
+    this.enqueue({ ...params, level: 'debug' });
+  }
+  info(params: LoggerParams) {
+    this.enqueue({ ...params, level: 'info' });
+  }
+  warn(params: LoggerParams) {
+    this.enqueue({ ...params, level: 'warn' });
+  }
+  error(params: LoggerParams) {
+    const { guild, error, message, meta } = params;
+    this.enqueue({
+      level: 'error',
+      ...(guild && { guild }),
+      message: error?.message ?? message,
+      meta,
+    });
   }
 
   private buildEmbed(level: LogLevel, message: string, meta?: unknown): EmbedBuilder {
@@ -150,5 +110,9 @@ export class AuditLogger extends BaseLogger {
     }
 
     return String(meta);
+  }
+
+  public setFlushInterval(interval: number) {
+    this.flushInterval = interval;
   }
 }

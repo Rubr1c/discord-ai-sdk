@@ -84,14 +84,17 @@ export class DiscordRouter {
    * @param client - The Discord client.
    */
   public subscribe(client: Client): void {
-    this.logger.info('DiscordRouter.subscribe', { mode: this.mode, activator: this.activator });
+    this.logger.info({
+      message: 'DiscordRouter.subscribe',
+      meta: { mode: this.mode, activator: this.activator },
+    });
     switch (this.mode) {
       case 'message':
         client.on(Events.MessageCreate, async (message: Message) => {
           if (!message.content.startsWith(this.activator)) return;
-
+          let ctx: RequestContext | undefined;
           try {
-            const ctx = this.buildContext(message);
+            ctx = this.buildContext(message);
             if (!ctx.channel.isTextBased()) {
               return;
             }
@@ -100,7 +103,11 @@ export class DiscordRouter {
             const response = await this.dispatch(ctx);
             await this.sendMessageResponse(message, response);
           } catch (error) {
-            this.logger.error('Error handling message:', error as Error);
+            this.logger.error({
+              message: 'Error handling message:',
+              error: error as Error,
+              ...(ctx && { guild: ctx.guild }),
+            });
             if (error instanceof AIError) {
               await message.reply(`Error: ${error.message}`);
             } else {
@@ -163,12 +170,11 @@ export class DiscordRouter {
    * @returns The response from the engine.
    */
   private async dispatch(ctx: RequestContext): Promise<string> {
-    // Set guild context for audit loggers
-    if (this.logger.setGuild) {
-      this.logger.setGuild(ctx.guild);
-    }
-
-    this.logger.debug('DiscordRouter.dispatch', { userId: ctx.userId, guildId: ctx.guild.id });
+    this.logger.debug({
+      message: 'DiscordRouter.dispatch',
+      meta: { userId: ctx.userId, guildId: ctx.guild.id },
+      guild: ctx.guild,
+    });
 
     if (!(await this.hasPermission(ctx))) {
       throw new AIError('NO_PERMISSION', `User[${ctx.userId}] has no permission`);
@@ -182,7 +188,11 @@ export class DiscordRouter {
       const response = await this.engine.handle(ctx.content, ctx);
       return response;
     } catch (err) {
-      this.logger.error('DiscordRouter.dispatch error', err as Error);
+      this.logger.error({
+        message: 'DiscordRouter.dispatch error',
+        error: err as Error,
+        guild: ctx.guild,
+      });
       if (err instanceof AIError) {
         return `Error: ${err.message}`;
       } else {
@@ -314,9 +324,9 @@ export class DiscordRouter {
     client.once(Events.ClientReady, async () => {
       try {
         await client.application?.commands.create(cmd);
-        this.logger.info('Slash command created');
+        this.logger.info({ message: 'Slash command created' });
       } catch (error) {
-        this.logger.error('Failed to register slash command:', error as Error);
+        this.logger.error({ message: 'Failed to register slash command:', error: error as Error });
       }
     });
 
@@ -338,7 +348,7 @@ export class DiscordRouter {
         const response = await this.dispatch(ctx);
         await this.sendInteractionResponse(interaction, response);
       } catch (error) {
-        this.logger.error('Error handling slash command:', error as Error);
+        this.logger.error({ message: 'Error handling slash command:', error: error as Error });
         const errorMsg =
           error instanceof AIError
             ? `Error: ${error.message}`
@@ -354,7 +364,10 @@ export class DiscordRouter {
             });
           }
         } catch (replyError) {
-          this.logger.error('Failed to send error response:', replyError as Error);
+          this.logger.error({
+            message: 'Failed to send error response:',
+            error: replyError as Error,
+          });
         }
       }
     });

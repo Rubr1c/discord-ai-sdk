@@ -143,7 +143,7 @@ export class AIEngine {
         maxOutputTokens: this.config.maxTokens,
       });
 
-      this.logger.info('AIEngine.callModel completed');
+      this.logger.info({ message: 'AIEngine.callModel completed', guild: ctx.guild });
 
       return {
         text: result.text,
@@ -153,7 +153,11 @@ export class AIEngine {
         })),
       };
     } catch (error) {
-      this.logger.error('AIEngine.callModel failed', error as Error);
+      this.logger.error({
+        message: 'AIEngine.callModel failed',
+        error: error as Error,
+        guild: ctx.guild,
+      });
       throw new AIError(
         'MODEL_ERROR',
         `Model execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

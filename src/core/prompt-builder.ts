@@ -66,7 +66,11 @@ export class PromptBuilder {
    * @returns The prompt.
    */
   public build(userPrompt: string, ctx: RequestContext): { system: string; prompt: string } {
-    this.logger.debug('PromptBuilder.build', { userId: ctx.userId, guildId: ctx.guild.id });
+    this.logger.debug({
+      message: 'PromptBuilder.build',
+      meta: { userId: ctx.userId, guildId: ctx.guild.id },
+      guild: ctx.guild,
+    });
     return {
       system:
         this.systemPrompt +
@@ -83,7 +87,7 @@ export class PromptBuilder {
    */
   public addRule(rule: string) {
     this.rules.push(rule);
-    this.logger.info('PromptBuilder.addRule', { rule });
+    this.logger.info({ message: 'PromptBuilder.addRule', meta: { rule } });
   }
 
   /**
@@ -92,7 +96,7 @@ export class PromptBuilder {
    */
   public removeRule(rule: string) {
     this.rules = this.rules.filter((r) => r != rule);
-    this.logger.info('PromptBuilder.removeRule', { rule });
+    this.logger.info({ message: 'PromptBuilder.removeRule', meta: { rule } });
   }
 
   /**
@@ -101,7 +105,7 @@ export class PromptBuilder {
    */
   public override(system: string): void {
     this.systemPrompt = system;
-    this.logger.warn('PromptBuilder.override used');
+    this.logger.warn({ message: 'PromptBuilder.override used' });
   }
 
   /**
@@ -109,6 +113,6 @@ export class PromptBuilder {
    */
   public resetRules(): void {
     this.rules = [];
-    this.logger.info('PromptBuilder.resetRules');
+    this.logger.info({ message: 'PromptBuilder.resetRules' });
   }
 }
