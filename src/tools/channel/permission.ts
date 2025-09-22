@@ -1,8 +1,8 @@
 import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
-import type { ToolResult } from '../types';
-import { permissionOverwriteSchema, permissionsToFlags } from '../shared/role-permissions';
+import type { ToolResult } from '@/tools/types';
+import { permissionOverwriteSchema, permissionsToFlags } from '@/tools/shared/role-permissions';
 
 /**
  * Creates a tool to manage channel permissions.

@@ -1,8 +1,8 @@
 import { tool, type Tool } from 'ai';
 import { type Guild } from 'discord.js';
 import z from 'zod';
-import type { ToolResult } from '../types';
-import { auditLogTypesSchema, auditLogTypesToFlags } from '../shared/audit-log-types';
+import type { ToolResult } from '@/tools/types';
+import { auditLogTypesSchema, auditLogTypesToFlags } from '@/tools/shared/audit-log-types';
 
 export function getAuditLogsTool(guild: Guild): Tool {
   return tool({

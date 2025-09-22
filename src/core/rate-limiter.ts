@@ -1,7 +1,7 @@
 import type { Guild } from 'discord.js';
-import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './utils/logger/console-logger';
-import type { CompositeLogger } from './utils/logger/composite-logger';
+import type { Logger, RequestContext } from '@/core/types';
+import { ConsoleLogger } from '@/core/utils/logger/console-logger';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 
 /**
  * Rate limit options.

@@ -1,12 +1,12 @@
 import { generateText, stepCountIs, type LanguageModel } from 'ai';
-import { type Logger, type RequestContext } from './types';
-import { RateLimiter } from './rate-limiter';
-import { ToolRegistry } from './tool-registry';
-import { PromptBuilder } from './prompt-builder';
-import { AIError } from './error';
-import { discordApiTools } from '../tools';
-import { ConsoleLogger } from './utils/logger/console-logger';
-import type { CompositeLogger } from './utils/logger/composite-logger';
+import { type Logger, type RequestContext } from '@/core/types';
+import { RateLimiter } from '@/core/rate-limiter';
+import { ToolRegistry } from '@/core/tool-registry';
+import { PromptBuilder } from '@/core/prompt-builder';
+import { AIError } from '@/core/error';
+import { discordApiTools } from '@/tools';
+import { ConsoleLogger } from '@/core/utils/logger/console-logger';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 
 /**
  * Configuration for the AI engine.

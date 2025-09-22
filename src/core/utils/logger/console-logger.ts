@@ -1,5 +1,5 @@
 import { AIError } from '@/core/error';
-import type { LoggerParams, LogLevel } from '../../types';
+import type { LoggerParams, LogLevel } from '@/core/types';
 import { BaseLogger } from './base-logger';
 
 /**

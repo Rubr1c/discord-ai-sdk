@@ -1,7 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { type Guild, type FetchMembersOptions } from 'discord.js';
 import z from 'zod';
-import type { ToolResult } from '../types';
+import type { ToolResult } from '@/tools/types';
 
 /**
  * Creates a tool to fetch members.

@@ -1,6 +1,6 @@
 import { EmbedBuilder, type Guild } from 'discord.js';
 import { BaseLogger } from './base-logger';
-import type { LoggerParams, LogLevel } from '../../types';
+import type { LoggerParams, LogLevel } from '@/core/types';
 
 export class AuditLogger extends BaseLogger {
   private auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>;

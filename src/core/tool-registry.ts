@@ -1,9 +1,9 @@
-import type { AITool, Logger, Safety } from './types';
-import { SAFETY } from './types';
-import type { RequestContext } from './types';
-import { ConsoleLogger } from './utils/logger/console-logger';
+import type { AITool, Logger, Safety } from '@/core/types';
+import { SAFETY } from '@/core/types';
+import type { RequestContext } from '@/core/types';
+import { ConsoleLogger } from '@/core/utils/logger/console-logger';
 import type { Guild } from 'discord.js';
-import type { CompositeLogger } from './utils/logger/composite-logger';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 
 /**
  * Tool registry properties.

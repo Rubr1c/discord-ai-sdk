@@ -7,11 +7,11 @@ import {
   type Client,
   type Interaction,
 } from 'discord.js';
-import { type BotMode, type Logger, type RequestContext } from './types';
-import { AIError } from './error';
-import { AIEngine } from './ai-engine';
-import { splitMessage } from './utils/message';
-import type { CompositeLogger } from './utils/logger/composite-logger';
+import { type BotMode, type Logger, type RequestContext } from '@/core/types';
+import { AIError } from '@/core/error';
+import { AIEngine } from '@/core/ai-engine';
+import { splitMessage } from '@/core/utils/message';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 
 /**
  * Configuration for the Discord router.
