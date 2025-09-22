@@ -51,6 +51,9 @@ export interface LLMResult {
   }[];
 }
 
+/**
+ * Configuration for the AI engine.
+ */
 export interface AIEngineConfig {
   maxRetries: number;
   maxSteps: number;
@@ -78,9 +81,7 @@ export class AIEngine {
   constructor(options: AIEngineProps) {
     this.model = options.model;
     this.logger = options.logger ?? new ConsoleLogger();
-    this.promptBuilder =
-      options.promptBuilder ||
-      new PromptBuilder({ logger: this.logger });
+    this.promptBuilder = options.promptBuilder || new PromptBuilder({ logger: this.logger });
     this.toolRegistry =
       options.toolRegistry ||
       new ToolRegistry({
