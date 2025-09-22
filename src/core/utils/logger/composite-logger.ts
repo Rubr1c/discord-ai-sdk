@@ -2,10 +2,13 @@ import type { Logger, LoggerParams, LogLevel } from '@/core/types';
 import { BaseLogger } from './base-logger';
 
 export class CompositeLogger extends BaseLogger {
+  /**
+   * The loggers to use.
+   */
   private loggers: Logger[];
 
-  constructor(loggers: Logger[], level: LogLevel = 'info') {
-    super(level);
+  constructor(loggers: Logger[], level?: LogLevel) {
+    super({ level });
     this.loggers = loggers;
   }
 

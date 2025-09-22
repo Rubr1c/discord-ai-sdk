@@ -10,8 +10,8 @@ export class ConsoleLogger extends BaseLogger {
    * Creates a console logger.
    * @param level - The level of the logger. @default 'info'
    */
-  constructor(level: LogLevel = 'info') {
-    super(level);
+  constructor({ level }: { level?: LogLevel } = {}) {
+    super({ level });
   }
 
   debug(params: LoggerParams) {

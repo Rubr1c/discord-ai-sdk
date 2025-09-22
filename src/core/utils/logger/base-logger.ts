@@ -2,20 +2,24 @@ import type { Logger, LogLevel, LoggerParams } from '@/core/types';
 
 import { LOG_LEVEL_ORDER } from '@/core/types';
 
+/**
+ * The base logger.
+ */
 export abstract class BaseLogger implements Logger {
   public level: LogLevel;
 
-  constructor(level: LogLevel = 'info') {
-    this.level = (process.env.LOG_LEVEL as LogLevel) || level;
+  constructor({ level }: { level?: LogLevel | undefined } = {}) {
+    this.level = (process.env.LOG_LEVEL as LogLevel) ?? level ?? 'info';
   }
 
   /**
    * Formats a timestamp for logging.
+   * @returns The formatted timestamp.
    */
   protected formatTimestamp(): string {
     return new Date().toISOString();
   }
-  
+
   /**
    * Checks if a log level should be logged.
    * @param level - The level to check.

@@ -51,6 +51,13 @@ export interface LLMResult {
   }[];
 }
 
+export interface AIEngineConfig {
+  maxRetries: number;
+  maxSteps: number;
+  temperature: number;
+  maxTokens: number;
+}
+
 /**
  * AI engine that orchestrates model calls and Discord tools.
  */
@@ -60,12 +67,7 @@ export class AIEngine {
   private toolRegistry: ToolRegistry;
   private rateLimiter: RateLimiter;
   public logger: Logger | CompositeLogger;
-  private config: {
-    maxRetries: number;
-    maxSteps: number;
-    temperature: number;
-    maxTokens: number;
-  };
+  private config: AIEngineConfig;
 
   /**
    * Creates an AI engine that orchestrates model calls and Discord tools.
@@ -76,7 +78,9 @@ export class AIEngine {
   constructor(options: AIEngineProps) {
     this.model = options.model;
     this.logger = options.logger ?? new ConsoleLogger();
-    this.promptBuilder = options.promptBuilder || new PromptBuilder('', false, this.logger);
+    this.promptBuilder =
+      options.promptBuilder ||
+      new PromptBuilder({ logger: this.logger });
     this.toolRegistry =
       options.toolRegistry ||
       new ToolRegistry({

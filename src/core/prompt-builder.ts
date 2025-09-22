@@ -2,6 +2,15 @@ import type { Logger, RequestContext } from '@/core/types';
 import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 import { ConsoleLogger } from '@/core/utils/logger/console-logger';
 
+export interface PromptBuilderProps {
+  /** The system prompt. @default '' */
+  system?: string;
+  /** Whether to override the system prompt. @default false */
+  override?: boolean;
+  /** The logger. @default new ConsoleLogger() */
+  logger?: Logger | CompositeLogger;
+}
+
 /**
  * Prompt builder.
  */
@@ -48,13 +57,11 @@ export class PromptBuilder {
 
   /**
    * Creates a prompt builder.
-   * @param system - The system prompt. @default ''
-   * @param override - Whether to override the system prompt. @default false
-   * @param logger - The logger. @default new ConsoleLogger()
+   * @param options - The options for the prompt builder.
    * @example
    * const promptBuilder = new PromptBuilder('You are a helpful assistant.', true, new ConsoleLogger());
    */
-  constructor(system = '', override = false, logger: Logger = new ConsoleLogger()) {
+  constructor({ system = '', override = false, logger = new ConsoleLogger() }: PromptBuilderProps) {
     this.systemPrompt = override ? system : this.baseSystemPrompt + system;
     this.logger = logger;
   }

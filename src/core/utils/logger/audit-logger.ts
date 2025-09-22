@@ -2,22 +2,67 @@ import { EmbedBuilder, type Guild } from 'discord.js';
 import { BaseLogger } from './base-logger';
 import type { LoggerParams, LogLevel } from '@/core/types';
 
+export interface AuditLoggerProps {
+  /**
+   * The log level. @default 'info'
+   */
+  level: LogLevel;
+  /**
+   * The function that returns the channel ID to audit log.
+   */
+  auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>;
+  /**
+   * The flush interval in milliseconds to send the logs to the audit log channel. @default 2000
+   */
+  flushInterval?: number;
+}
+
+interface LogQueueItem {
+  /**
+   * The embed to audit log.
+   */
+  embed: EmbedBuilder;
+  /**
+   * The guild to audit log.
+   */
+  guild: Guild;
+}
+
+interface EnqueueParams extends Omit<LoggerParams, 'error'> {
+  /**
+   * The log level.
+   */
+  level: LogLevel;
+}
+
+/**
+ * The audit logger.
+ */
 export class AuditLogger extends BaseLogger {
   private auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>;
-  private queue: { embed: EmbedBuilder; guild: Guild }[] = [];
-  private isFlushing = false;
-  private flushInterval = 2000;
 
-  constructor(level: LogLevel, auditLogFn: (guild: Guild) => Promise<{ channelId?: string }>) {
-    super(level);
+  private flushInterval: number;
+
+  private queue: LogQueueItem[] = [];
+  private isFlushing = false;
+
+  constructor({ level, auditLogFn, flushInterval = 2000 }: AuditLoggerProps) {
+    super({ level });
     this.auditLogFn = auditLogFn;
+    this.flushInterval = flushInterval;
     this.startFlusher();
   }
 
+  /**
+   * Starts the flusher.
+   */
   private startFlusher() {
     setInterval(() => this.flushQueue(), this.flushInterval);
   }
 
+  /**
+   * Flushes the first item in the queue to the audit log channel.
+   */
   private async flushQueue() {
     if (this.isFlushing || this.queue.length === 0) return;
     this.isFlushing = true;
@@ -39,17 +84,11 @@ export class AuditLogger extends BaseLogger {
     }
   }
 
-  private enqueue({
-    guild,
-    level,
-    message,
-    meta,
-  }: {
-    level: LogLevel;
-    message: string;
-    guild?: Guild;
-    meta?: unknown;
-  }) {
+  /**
+   * Enqueues a log item.
+   * @param params - The log parameters.
+   */
+  private enqueue({ guild, level, message, meta }: EnqueueParams) {
     if (!guild || !this.shouldLog(level)) return;
     const embed = this.buildEmbed(level, message, meta);
     this.queue.push({ embed, guild });
@@ -74,6 +113,13 @@ export class AuditLogger extends BaseLogger {
     });
   }
 
+  /**
+   * Builds an embed for the log.
+   * @param level - The log level.
+   * @param message - The log message.
+   * @param meta - The log metadata.
+   * @returns The embed.
+   */
   private buildEmbed(level: LogLevel, message: string, meta?: unknown): EmbedBuilder {
     const colors: Record<LogLevel, number> = {
       debug: 0x808080,
@@ -95,6 +141,11 @@ export class AuditLogger extends BaseLogger {
     return embed;
   }
 
+  /**
+   * Formats the metadata.
+   * @param meta - The metadata.
+   * @returns The formatted metadata.
+   */
   private formatMeta(meta: unknown): string {
     if (typeof meta === 'string') {
       return meta;

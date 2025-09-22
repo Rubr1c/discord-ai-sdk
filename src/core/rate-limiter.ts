@@ -22,7 +22,9 @@ export type RateLimitFn = ((userId: string, guild: Guild) => Promise<RateLimitOp
  * Rate limiter properties.
  */
 export interface RateLimiterProps extends RateLimitOpts {
+  /** The custom rate limits function. @default undefined */
   customRateLimits?: RateLimitFn;
+  /** The logger. @default new ConsoleLogger() */
   logger?: Logger | CompositeLogger;
 }
 

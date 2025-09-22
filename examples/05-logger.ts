@@ -23,15 +23,18 @@ const client = new Client({
 });
 
 // console logger is used to log logs to the console
-const logger = new ConsoleLogger('debug');
+const logger = new ConsoleLogger({ level: 'debug' });
 // audit logger is used to log audit logs to a specific channel fetched with a async function
-const auditLogger = new AuditLogger('debug', async (guild) => {
-  const guildData = await prisma.guilds.findUnique({
-    where: {
-      id: guild.id,
-    },
-  });
-  return { channelId: guildData?.auditChannelId };
+const auditLogger = new AuditLogger({
+  level: 'debug',
+  auditLogFn: async (guild) => {
+    const guildData = await prisma.guilds.findUnique({
+      where: {
+        id: guild.id,
+      },
+    });
+    return { channelId: guildData?.auditChannelId };
+  },
 });
 // composite logger is used to log logs to multiple loggers
 const compositeLogger = new CompositeLogger([logger, auditLogger]);
