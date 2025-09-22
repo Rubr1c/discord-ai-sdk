@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
-import { PermissionSchema, permissionsToFlags } from '../shared/role-permissions';
+import { permissionOverwriteSchema, permissionsToFlags } from '../shared/role-permissions';
 
 /**
  * Creates a tool to manage channel permissions.
@@ -14,22 +14,7 @@ export function manageChannelPermissionsTool(guild: Guild): Tool {
     description: 'manage channel permissions',
     inputSchema: z.object({
       channelId: z.string().describe('id of channel'),
-      permissionOverwrites: z
-        .array(
-          z
-            .object({
-              id: z.string().describe('Role or user ID'),
-              allow: PermissionSchema.describe('Permissions to allow'),
-              deny: PermissionSchema.describe('Permissions to deny'),
-            })
-            .refine((data) => data.allow || data.deny, {
-              message: 'At least one of allow or deny must be present',
-            }),
-        )
-        .optional()
-        .describe(
-          'Permission overwrites for specific roles/users. Example: [{id: "roleId", allow: {ViewChannel: true}, deny: {}}]',
-        ),
+      permissionOverwrites: permissionOverwriteSchema,
     }),
     execute: async ({ channelId, permissionOverwrites }): Promise<ToolResult> => {
       const channel = await guild.channels.fetch(channelId);

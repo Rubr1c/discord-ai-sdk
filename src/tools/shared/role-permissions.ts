@@ -4,13 +4,10 @@ import z from 'zod';
 /**
  * Zod schema for role permissions.
  */
-export const PermissionSchema = z
+export const permissionSchema = z
   .object(
     Object.fromEntries(
-      Object.keys(PermissionsBitField.Flags).map((flag) => [
-        flag,
-        z.boolean().optional(),
-      ]),
+      Object.keys(PermissionsBitField.Flags).map((flag) => [flag, z.boolean().optional()]),
     ),
   )
   .optional()
@@ -19,9 +16,29 @@ export const PermissionSchema = z
   );
 
 /**
+ * Zod schema for permission overwrites.
+ */
+export const permissionOverwriteSchema = z
+  .array(
+    z
+      .object({
+        id: z.string().describe('Role or user ID'),
+        allow: permissionSchema.describe('Permissions to allow'),
+        deny: permissionSchema.describe('Permissions to deny'),
+      })
+      .refine((data) => data.allow || data.deny, {
+        message: 'At least one of allow or deny must be present',
+      }),
+  )
+  .optional()
+  .describe(
+    'Permission overwrites for specific roles/users. Example: [{id: "roleId", allow: {ViewChannel: true}, deny: {}}]',
+  );
+
+/**
  * The type for role permissions.
  */
-export type PermissionInput = z.infer<typeof PermissionSchema>;
+export type PermissionInput = z.infer<typeof permissionSchema>;
 
 /**
  * Converts a role permissions object to an array of flag values.

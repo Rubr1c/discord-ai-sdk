@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import type { Guild, RoleEditOptions } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
-import { PermissionSchema, permissionsToFlags } from '../shared/role-permissions';
+import { permissionSchema, permissionsToFlags } from '../shared/role-permissions';
 
 /**
  * Creates a tool to update a role.
@@ -21,7 +21,7 @@ export function updateRoleTool(guild: Guild): Tool {
         .nullable()
         .describe('Hex color without # (e.g., FF0000)'),
       mentionable: z.boolean().nullable().describe('Whether the role is mentionable'),
-      permissions: PermissionSchema,
+      permissions: permissionSchema,
     }),
     execute: async ({ roleId, name, color, mentionable, permissions }): Promise<ToolResult> => {
       try {

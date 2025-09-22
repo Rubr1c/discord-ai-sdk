@@ -2,7 +2,7 @@ import { tool, type Tool } from 'ai';
 import { ChannelType, type Guild } from 'discord.js';
 import z from 'zod';
 import type { ToolResult } from '../types';
-import { PermissionSchema, permissionsToFlags } from '../shared/role-permissions';
+import { permissionOverwriteSchema, permissionsToFlags } from '../shared/role-permissions';
 
 /**
  * Creates a tool to create a channel.
@@ -26,22 +26,7 @@ export function createChannelTool(guild: Guild): Tool {
         .describe(
           'Category ID where the channel should be created. Use the ID from getCategories tool output.',
         ),
-      permissionOverwrites: z
-        .array(
-          z
-            .object({
-              id: z.string().describe('Role or user ID'),
-              allow: PermissionSchema.describe('Permissions to allow'),
-              deny: PermissionSchema.describe('Permissions to deny'),
-            })
-            .refine((data) => data.allow || data.deny, {
-              message: 'At least one of allow or deny must be present',
-            }),
-        )
-        .optional()
-        .describe(
-          'Permission overwrites for specific roles/users. Example: [{id: "roleId", allow: {ViewChannel: true}, deny: {}}]',
-        ),
+      permissionOverwrites: permissionOverwriteSchema,
     }),
     execute: async ({ channelName, category, permissionOverwrites }): Promise<ToolResult> => {
       try {
