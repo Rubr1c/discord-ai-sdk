@@ -32,6 +32,7 @@ import { getMessagesTool } from './message/get';
 import { pinMessageTool } from './message/pin';
 import { unpinMessageTool } from './message/unpin';
 import { deleteMessageTool } from './message/delete';
+import { getAuditLogsTool } from './server/audit-logs';
 
 /**
  * Creates a tool.
@@ -78,4 +79,5 @@ export const discordApiTools = {
   getMessages: createTool(getMessagesTool, 'low'),
   pinMessage: createTool(pinMessageTool, 'low'),
   unpinMessage: createTool(unpinMessageTool, 'mid'),
+  getAuditLogs: createTool(getAuditLogsTool, 'low'),
 };
