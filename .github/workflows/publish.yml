@@ -11,7 +11,7 @@ jobs:
 
     permissions:
       contents: write
-      id-token: write 
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -78,6 +78,16 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Extract changelog for this version
+        if: steps.version-check.outputs.version-exists == 'false'
+        id: changelog
+        run: |
+          VERSION="v${{ steps.version-check.outputs.current-version }}"
+          awk "/^## \\[$VERSION\\]/ {flag=1; next} /^## \\[/ {flag=0} flag {print}" CHANGELOG.md > RELEASE_BODY.md
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat RELEASE_BODY.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         if: steps.version-check.outputs.version-exists == 'false'
         uses: actions/create-release@v1
@@ -86,5 +96,6 @@ jobs:
         with:
           tag_name: v${{ steps.version-check.outputs.current-version }}
           release_name: Release v${{ steps.version-check.outputs.current-version }}
+          body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
