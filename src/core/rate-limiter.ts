@@ -1,6 +1,7 @@
 import type { Guild } from 'discord.js';
-import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './console-logger';
+import type { Logger, RequestContext } from '@/core/types';
+import { ConsoleLogger } from '@/core/utils/logger/console-logger';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 
 /**
  * Rate limit options.
@@ -21,8 +22,10 @@ export type RateLimitFn = ((userId: string, guild: Guild) => Promise<RateLimitOp
  * Rate limiter properties.
  */
 export interface RateLimiterProps extends RateLimitOpts {
+  /** The custom rate limits function. @default undefined */
   customRateLimits?: RateLimitFn;
-  logger?: Logger;
+  /** The logger. @default new ConsoleLogger() */
+  logger?: Logger | CompositeLogger;
 }
 
 /**
@@ -32,7 +35,7 @@ export class RateLimiter {
   private opts: RateLimitOpts;
   private readonly requestTimestamps = new Map<string, number[]>();
   private customRateLimits: RateLimitFn;
-  private logger: Logger;
+  public logger: Logger | CompositeLogger;
 
   /**
    * Creates a rate limiter.
@@ -68,9 +71,10 @@ export class RateLimiter {
     const recentTimestamps = scopeTimestamps.filter((timestamp) => timestamp > startWindow);
 
     if (recentTimestamps.length >= rate.limitCount) {
-      this.logger.warn('RateLimiter.isRateLimited: true', {
-        userId: ctx.userId,
-        guildId: ctx.guild.id,
+      this.logger.warn({
+        message: 'RateLimiter.isRateLimited: true',
+        meta: { userId: ctx.userId, guildId: ctx.guild.id },
+        guild: ctx.guild,
       });
       this.requestTimestamps.set(ctx.userId, recentTimestamps);
       return true;
@@ -79,9 +83,10 @@ export class RateLimiter {
     recentTimestamps.push(now);
     this.requestTimestamps.set(ctx.userId, recentTimestamps);
 
-    this.logger.debug('RateLimiter.isRateLimited: false', {
-      userId: ctx.userId,
-      guildId: ctx.guild.id,
+    this.logger.debug({
+      message: 'RateLimiter.isRateLimited: false',
+      meta: { userId: ctx.userId, guildId: ctx.guild.id },
+      guild: ctx.guild,
     });
     return false;
   }
@@ -91,7 +96,7 @@ export class RateLimiter {
    */
   public resetAll() {
     this.requestTimestamps.clear();
-    this.logger.info('RateLimiter.resetAll');
+    this.logger.info({ message: 'RateLimiter.resetAll' });
   }
 
   /**
@@ -100,6 +105,6 @@ export class RateLimiter {
    */
   public resetFor(userId: string) {
     this.requestTimestamps.set(userId, []);
-    this.logger.info('RateLimiter.resetFor', { userId });
+    this.logger.info({ message: 'RateLimiter.resetFor', meta: { userId } });
   }
 }

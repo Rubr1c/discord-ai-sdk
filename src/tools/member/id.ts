@@ -1,7 +1,7 @@
 import { tool, type Tool } from 'ai';
 import { type Guild } from 'discord.js';
 import z from 'zod';
-import type { ToolResult } from '../types';
+import type { ToolResult } from '@/tools/types';
 
 /**
  * Creates a tool to fetch user id from username.

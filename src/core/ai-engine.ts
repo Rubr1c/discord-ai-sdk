@@ -1,11 +1,12 @@
 import { generateText, stepCountIs, type LanguageModel } from 'ai';
-import { type Logger, type RequestContext } from './types';
-import { RateLimiter } from './rate-limiter';
-import { ToolRegistry } from './tool-registry';
-import { PromptBuilder } from './prompt-builder';
-import { AIError } from './error';
-import { discordApiTools } from '../tools';
-import { ConsoleLogger } from './console-logger';
+import { type Logger, type RequestContext } from '@/core/types';
+import { RateLimiter } from '@/core/rate-limiter';
+import { ToolRegistry } from '@/core/tool-registry';
+import { PromptBuilder } from '@/core/prompt-builder';
+import { AIError } from '@/core/error';
+import { discordApiTools } from '@/tools';
+import { ConsoleLogger } from '@/core/utils/logger/console-logger';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
 
 /**
  * Configuration for the AI engine.
@@ -36,7 +37,7 @@ export interface AIEngineProps {
   maxTokens?: number;
 
   /** Logger. @default new ConsoleLogger() */
-  logger?: Logger;
+  logger?: Logger | CompositeLogger;
 }
 
 /**
@@ -51,6 +52,16 @@ export interface LLMResult {
 }
 
 /**
+ * Configuration for the AI engine.
+ */
+export interface AIEngineConfig {
+  maxRetries: number;
+  maxSteps: number;
+  temperature: number;
+  maxTokens: number;
+}
+
+/**
  * AI engine that orchestrates model calls and Discord tools.
  */
 export class AIEngine {
@@ -58,13 +69,8 @@ export class AIEngine {
   private promptBuilder: PromptBuilder;
   private toolRegistry: ToolRegistry;
   private rateLimiter: RateLimiter;
-  private logger: Logger;
-  private config: {
-    maxRetries: number;
-    maxSteps: number;
-    temperature: number;
-    maxTokens: number;
-  };
+  public logger: Logger | CompositeLogger;
+  private config: AIEngineConfig;
 
   /**
    * Creates an AI engine that orchestrates model calls and Discord tools.
@@ -75,7 +81,7 @@ export class AIEngine {
   constructor(options: AIEngineProps) {
     this.model = options.model;
     this.logger = options.logger ?? new ConsoleLogger();
-    this.promptBuilder = options.promptBuilder || new PromptBuilder('', false, this.logger);
+    this.promptBuilder = options.promptBuilder || new PromptBuilder({ logger: this.logger });
     this.toolRegistry =
       options.toolRegistry ||
       new ToolRegistry({
@@ -142,7 +148,7 @@ export class AIEngine {
         maxOutputTokens: this.config.maxTokens,
       });
 
-      this.logger.info('AIEngine.callModel completed');
+      this.logger.info({ message: 'AIEngine.callModel completed', guild: ctx.guild });
 
       return {
         text: result.text,
@@ -152,7 +158,11 @@ export class AIEngine {
         })),
       };
     } catch (error) {
-      this.logger.error('AIEngine.callModel failed', error as Error);
+      this.logger.error({
+        message: 'AIEngine.callModel failed',
+        error: error as Error,
+        guild: ctx.guild,
+      });
       throw new AIError(
         'MODEL_ERROR',
         `Model execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

@@ -14,10 +14,10 @@ const client = new Client({
   ],
 });
 
-const promptBuilder = new PromptBuilder(
-  'You are a helpful assistant.', // system prompt
-  true, // override the system prompt
-);
+const promptBuilder = new PromptBuilder({
+  system: 'You are a helpful assistant.', // system prompt
+  override: true, // override the system prompt
+});
 
 // override the system prompt with a new system prompt
 promptBuilder.override('You are a helpful assistant.');

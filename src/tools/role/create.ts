@@ -1,8 +1,8 @@
 import { tool, type Tool } from 'ai';
 import type { Guild } from 'discord.js';
 import z from 'zod';
-import type { ToolResult } from '../types';
-import { PermissionSchema, permissionsToFlags } from '../shared/role-permissions';
+import type { ToolResult } from '@/tools/types';
+import { permissionSchema, permissionsToFlags } from '@/tools/shared/role-permissions';
 
 /**
  * Creates a tool to create a role.
@@ -25,7 +25,7 @@ export function createRoleTool(guild: Guild): Tool {
         .boolean()
         .default(true)
         .describe('should the role be mentionable (defualt true)'),
-      permissions: PermissionSchema,
+      permissions: permissionSchema,
     }),
     execute: async ({ name, color, mentionable, permissions }): Promise<ToolResult> => {
       const roleColor = color ? parseInt(color, 16) : parseInt('5865F2', 16);

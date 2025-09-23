@@ -1,6 +1,6 @@
 {
   "name": "discord-ai-sdk",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "type": "module",
   "description": "A sdk made to allow ai to interact with discord api for discord bots",
   "main": "dist/index.cjs",

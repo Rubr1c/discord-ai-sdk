@@ -30,11 +30,22 @@ export interface AITool {
 
 export type BotMode = 'slash' | 'message';
 
+export interface LoggerParams {
+  message: string;
+  guild?: Guild;
+  meta?: unknown;
+  error?: Error;
+}
+
 export interface Logger {
-  debug(message: string, meta?: unknown): void;
-  info(message: string, meta?: unknown): void;
-  warn(message: string, meta?: unknown): void;
-  error(message: string | Error, meta?: unknown): void;
+  level: LogLevel;
+
+  shouldLog(level: LogLevel): boolean;
+
+  debug(params: LoggerParams): void;
+  info(params: LoggerParams): void;
+  warn(params: LoggerParams): void;
+  error(params: LoggerParams): void;
 }
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';

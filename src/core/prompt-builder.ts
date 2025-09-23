@@ -1,5 +1,15 @@
-import type { Logger, RequestContext } from './types';
-import { ConsoleLogger } from './console-logger';
+import type { Logger, RequestContext } from '@/core/types';
+import type { CompositeLogger } from '@/core/utils/logger/composite-logger';
+import { ConsoleLogger } from '@/core/utils/logger/console-logger';
+
+export interface PromptBuilderProps {
+  /** The system prompt. @default '' */
+  system?: string;
+  /** Whether to override the system prompt. @default false */
+  override?: boolean;
+  /** The logger. @default new ConsoleLogger() */
+  logger?: Logger | CompositeLogger;
+}
 
 /**
  * Prompt builder.
@@ -43,17 +53,15 @@ export class PromptBuilder {
 
   /** The rules of the prompt builder. */
   private rules: string[] = [];
-  private logger: Logger;
+  public logger: Logger | CompositeLogger;
 
   /**
    * Creates a prompt builder.
-   * @param system - The system prompt. @default ''
-   * @param override - Whether to override the system prompt. @default false
-   * @param logger - The logger. @default new ConsoleLogger()
+   * @param options - The options for the prompt builder.
    * @example
    * const promptBuilder = new PromptBuilder('You are a helpful assistant.', true, new ConsoleLogger());
    */
-  constructor(system = '', override = false, logger: Logger = new ConsoleLogger()) {
+  constructor({ system = '', override = false, logger = new ConsoleLogger() }: PromptBuilderProps = {}) {
     this.systemPrompt = override ? system : this.baseSystemPrompt + system;
     this.logger = logger;
   }
@@ -65,7 +73,11 @@ export class PromptBuilder {
    * @returns The prompt.
    */
   public build(userPrompt: string, ctx: RequestContext): { system: string; prompt: string } {
-    this.logger.debug('PromptBuilder.build', { userId: ctx.userId, guildId: ctx.guild.id });
+    this.logger.debug({
+      message: 'PromptBuilder.build',
+      meta: { userId: ctx.userId, guildId: ctx.guild.id },
+      guild: ctx.guild,
+    });
     return {
       system:
         this.systemPrompt +
@@ -82,7 +94,7 @@ export class PromptBuilder {
    */
   public addRule(rule: string) {
     this.rules.push(rule);
-    this.logger.info('PromptBuilder.addRule', { rule });
+    this.logger.info({ message: 'PromptBuilder.addRule', meta: { rule } });
   }
 
   /**
@@ -91,7 +103,7 @@ export class PromptBuilder {
    */
   public removeRule(rule: string) {
     this.rules = this.rules.filter((r) => r != rule);
-    this.logger.info('PromptBuilder.removeRule', { rule });
+    this.logger.info({ message: 'PromptBuilder.removeRule', meta: { rule } });
   }
 
   /**
@@ -100,7 +112,7 @@ export class PromptBuilder {
    */
   public override(system: string): void {
     this.systemPrompt = system;
-    this.logger.warn('PromptBuilder.override used');
+    this.logger.warn({ message: 'PromptBuilder.override used' });
   }
 
   /**
@@ -108,6 +120,6 @@ export class PromptBuilder {
    */
   public resetRules(): void {
     this.rules = [];
-    this.logger.info('PromptBuilder.resetRules');
+    this.logger.info({ message: 'PromptBuilder.resetRules' });
   }
 }
