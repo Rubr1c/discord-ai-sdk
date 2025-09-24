@@ -16,10 +16,15 @@ export function removeRoleTool(guild: Guild): Tool {
       userId: z.string().describe('id of user'),
     }),
     execute: async ({ roleId, userId }): Promise<ToolResult> => {
-      const user = await guild.members.fetch(userId);
-      await user.roles.remove(roleId);
+      try {
+        const user = await guild.members.fetch(userId);
+        await user.roles.remove(roleId);
 
-      return { summary: `Removed role ${roleId} from ${userId}` };
+        return { summary: `Removed role ${roleId} from ${userId}` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to remove role ${roleId} from ${userId}: ${message}` };
+      }
     },
   });
 }

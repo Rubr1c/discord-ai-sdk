@@ -25,31 +25,36 @@ export function getMessagesTool(guild: Guild): Tool {
       around: z.string().optional().describe('get messages around this message ID'),
     }),
     execute: async ({ channelId, limit, before, after, around }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(channelId);
-      if (!channel?.isTextBased()) {
-        return { summary: `Channel ${channelId} is not a text channel` };
+      try {
+        const channel = await guild.channels.fetch(channelId);
+        if (!channel?.isTextBased()) {
+          return { summary: `Channel ${channelId} is not a text channel` };
+        }
+
+        const fetchOptions: FetchMessagesOptions = { limit };
+        if (before) fetchOptions.before = before;
+        if (after) fetchOptions.after = after;
+        if (around) fetchOptions.around = around;
+
+        const messages = await channel.messages.fetch(fetchOptions);
+
+        const messageList = Array.from(messages.values()).map((msg) => ({
+          id: msg.id,
+          author: {
+            username: msg.author.username,
+          },
+          content: msg.content,
+          timestamp: msg.createdAt.toISOString(),
+        }));
+
+        return {
+          summary: `Fetched ${messageList.length} messages from #${channel.name}`,
+          data: messageList,
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to fetch messages from ${channelId}: ${message}` };
       }
-
-      const fetchOptions: FetchMessagesOptions = { limit };
-      if (before) fetchOptions.before = before;
-      if (after) fetchOptions.after = after;
-      if (around) fetchOptions.around = around;
-
-      const messages = await channel.messages.fetch(fetchOptions);
-
-      const messageList = Array.from(messages.values()).map((msg) => ({
-        id: msg.id,
-        author: {
-          username: msg.author.username,
-        },
-        content: msg.content,
-        timestamp: msg.createdAt.toISOString(),
-      }));
-
-      return {
-        summary: `Fetched ${messageList.length} messages from #${channel.name}`,
-        data: messageList,
-      };
     },
   });
 }

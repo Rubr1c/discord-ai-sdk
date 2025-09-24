@@ -17,17 +17,25 @@ export function manageChannelPermissionsTool(guild: Guild): Tool {
       permissionOverwrites: permissionOverwriteSchema,
     }),
     execute: async ({ channelId, permissionOverwrites }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(channelId);
-      if (!channel || !('permissionOverwrites' in channel)) {
-        return { summary: `Channel ${channelId} does not support permission overwrites` };
+      try {
+        const channel = await guild.channels.fetch(channelId);
+
+        if (!channel || !('permissionOverwrites' in channel)) {
+          return { summary: `Channel ${channelId} does not support permission overwrites` };
+        }
+
+        const overwrites = permissionOverwrites?.map((o) => ({
+          id: o.id,
+          allow: permissionsToFlags(o.allow),
+          deny: permissionsToFlags(o.deny),
+        }));
+
+        await channel.permissionOverwrites.set(overwrites ?? []);
+        return { summary: `Updated permissions for channel ${channelId}` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to update permissions for channel ${channelId}: ${message}` };
       }
-      const overwrites = permissionOverwrites?.map((o) => ({
-        id: o.id,
-        allow: permissionsToFlags(o.allow),
-        deny: permissionsToFlags(o.deny),
-      }));
-      await channel.permissionOverwrites.set(overwrites ?? []);
-      return { summary: `Updated permissions for channel ${channelId}` };
     },
   });
 }

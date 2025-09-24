@@ -15,9 +15,14 @@ export function getRoleIdTool(guild: Guild): Tool {
       name: z.string().describe('name of target role'),
     }),
     execute: async ({ name }): Promise<ToolResult> => {
-      const role = (await guild.roles.fetch()).find((role) => role.name === name);
+      try {
+        const role = (await guild.roles.fetch()).find((role) => role.name === name);
 
-      return { summary: `${name}: ${role?.id ?? 'not found'}`, data: { id: role?.id ?? null } };
+        return { summary: `${name}: ${role?.id ?? 'not found'}`, data: { id: role?.id ?? null } };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to fetch role id from role name: ${message}` };
+      }
     },
   });
 }
