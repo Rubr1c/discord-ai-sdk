@@ -1,6 +1,6 @@
 {
   "name": "discord-ai-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "A sdk made to allow ai to interact with discord api for discord bots",
   "main": "dist/index.cjs",
@@ -48,6 +48,7 @@
     "discord.js",
     "ai",
     "vercel-ai-sdk",
+    "ai-sdk",
     "llm",
     "sdk",
     "middleware",

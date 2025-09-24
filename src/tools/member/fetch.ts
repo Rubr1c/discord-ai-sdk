@@ -29,31 +29,36 @@ export function getMembersTool(guild: Guild): Tool {
         .describe('include member presence information (online status, activities)'),
     }),
     execute: async ({ limit, query, withPresences }): Promise<ToolResult> => {
-      const fetchOptions: FetchMembersOptions = {
-        limit,
-        withPresences,
-      };
+      try {
+        const fetchOptions: FetchMembersOptions = {
+          limit,
+          withPresences,
+        };
 
-      if (query) {
-        fetchOptions.query = query;
+        if (query) {
+          fetchOptions.query = query;
+        }
+
+        const fetchedMembers = await guild.members.fetch(fetchOptions);
+
+        const members = Array.from(fetchedMembers.values()).map((member) => ({
+          bot: member.user.bot,
+          username: member.user.username,
+          displayName: member.displayName,
+          id: member.user.id,
+          joinedAt: member.joinedAt?.toISOString() || null,
+          roles: Math.max(0, member.roles.cache.size - 1),
+          status: withPresences ? member.presence?.status || 'offline' : undefined,
+        }));
+
+        return {
+          summary: `Found ${members.length} members${query ? ` matching "${query}"` : ''}`,
+          data: members,
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to fetch members: ${message}` };
       }
-
-      const fetchedMembers = await guild.members.fetch(fetchOptions);
-
-      const members = Array.from(fetchedMembers.values()).map((member) => ({
-        bot: member.user.bot,
-        username: member.user.username,
-        displayName: member.displayName,
-        id: member.user.id,
-        joinedAt: member.joinedAt?.toISOString() || null,
-        roles: Math.max(0, member.roles.cache.size - 1),
-        status: withPresences ? member.presence?.status || 'offline' : undefined,
-      }));
-
-      return {
-        summary: `Found ${members.length} members${query ? ` matching "${query}"` : ''}`,
-        data: members,
-      };
     },
   });
 }

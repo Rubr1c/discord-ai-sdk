@@ -25,11 +25,16 @@ export function timeoutMemberTool(guild: Guild): Tool {
         .describe('duration in ms (5s–28d)'),
     }),
     execute: async ({ userId, reason, duration }): Promise<ToolResult> => {
-      const user = await guild.members.fetch(userId);
+      try {
+        const user = await guild.members.fetch(userId);
 
-      await user.timeout(duration, reason ?? '');
+        await user.timeout(duration, reason ?? '');
 
-      return { summary: `Timed out user ${userId} for ${duration}ms` };
+        return { summary: `Timed out user ${userId} for ${duration}ms` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to timeout user ${userId}: ${message}` };
+      }
     },
   });
 }

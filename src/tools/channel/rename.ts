@@ -25,12 +25,17 @@ export function renameChannelTool(guild: Guild): Tool {
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9\-_]/g, '')
         .replace(/^-+|-+$/g, '');
+         
+      try {
+        const channel = await guild.channels.fetch(channelId);
 
-      const channel = await guild.channels.fetch(channelId);
+        await channel?.edit({ name: channelName });
 
-      await channel?.edit({ name: channelName });
-
-      return { summary: `Edited channel name of channel [${channelId}] to ${channelName}` };
+        return { summary: `Edited channel name of channel [${channelId}] to ${channelName}` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to rename channel ${channelId}: ${message}` };
+      }
     },
   });
 }

@@ -16,27 +16,32 @@ export function pinMessageTool(guild: Guild): Tool {
       messageId: z.string().describe('message id'),
     }),
     execute: async ({ messageId, channelId }): Promise<ToolResult> => {
-      const channel = await guild.channels.fetch(channelId);
-
-      if (!channel) {
-        return { summary: `Channel ${channelId} not found` };
-      }
-
-      if (!channel.isTextBased()) {
-        return { summary: `Channel ${channelId} is not a text channel` };
-      }
-
       try {
-        const message = await channel.messages.fetch(messageId);
-        if (message.pinned) {
-          return { summary: `Message ${messageId} is already pinned` };
+        const channel = await guild.channels.fetch(channelId);
+
+        if (!channel) {
+          return { summary: `Channel ${channelId} not found` };
         }
 
-        await message.pin();
+        if (!channel.isTextBased()) {
+          return { summary: `Channel ${channelId} is not a text channel` };
+        }
 
-        return { summary: `Pinned message ${messageId}` };
+        try {
+          const message = await channel.messages.fetch(messageId);
+          if (message.pinned) {
+            return { summary: `Message ${messageId} is already pinned` };
+          }
+
+          await message.pin();
+
+          return { summary: `Pinned message ${messageId}` };
+        } catch (err) {
+          return { summary: `Failed to pin message ${messageId}: ${(err as Error).message}` };
+        }
       } catch (err) {
-        return { summary: `Failed to pin message ${messageId}: ${(err as Error).message}` };
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to pin message ${messageId}: ${message}` };
       }
     },
   });

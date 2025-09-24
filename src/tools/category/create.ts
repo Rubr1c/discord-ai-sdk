@@ -15,12 +15,17 @@ export function createCategoryTool(guild: Guild): Tool {
       name: z.string().describe('name of the category'),
     }),
     execute: async ({ name }): Promise<ToolResult> => {
-      const category = await guild.channels.create({
-        name: name,
-        type: ChannelType.GuildCategory,
-      });
+      try {
+        const category = await guild.channels.create({
+          name: name,
+          type: ChannelType.GuildCategory,
+        });
 
-      return { summary: `Created Category: ${category.name}`, data: { id: category.id } };
+        return { summary: `Created Category: ${category.name}`, data: { id: category.id } };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to create category: ${message}` };
+      }
     },
   });
 }

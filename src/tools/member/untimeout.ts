@@ -15,10 +15,15 @@ export function untimeoutMemberTool(guild: Guild): Tool {
       userId: z.string().describe('id of target user'),
     }),
     execute: async ({ userId }): Promise<ToolResult> => {
-      const user = await guild.members.fetch(userId);
+      try {
+        const user = await guild.members.fetch(userId);
 
-      await user.disableCommunicationUntil(null, 'Timeout removed');
-      return { summary: `Removed timeout from user ${userId}` };
+        await user.disableCommunicationUntil(null, 'Timeout removed');
+        return { summary: `Removed timeout from user ${userId}` };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to remove timeout from user ${userId}: ${message}` };
+      }
     },
   });
 }

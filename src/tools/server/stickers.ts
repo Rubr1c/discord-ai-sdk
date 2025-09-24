@@ -13,19 +13,24 @@ export function getStickersTool(guild: Guild): Tool {
     description: 'get server stickers',
     inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
-      const fetched = await guild.stickers.fetch();
-      const list = Array.from(fetched.values()).map((s) => ({
-        id: s.id,
-        name: s.name,
-        url: s.url,
-        available: s.available,
-        format: String(StickerFormatType[s.format]).toLowerCase(),
-      }));
+      try {
+        const fetched = await guild.stickers.fetch();
+        const list = Array.from(fetched.values()).map((s) => ({
+          id: s.id,
+          name: s.name,
+          url: s.url,
+          available: s.available,
+          format: String(StickerFormatType[s.format]).toLowerCase(),
+        }));
 
-      return {
-        summary: `Fetched stickers (${list.length})`,
-        data: list,
-      };
+        return {
+          summary: `Fetched stickers (${list.length})`,
+          data: list,
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to fetch stickers: ${message}` };
+      }
     },
   });
 }

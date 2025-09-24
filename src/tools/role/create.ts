@@ -28,22 +28,27 @@ export function createRoleTool(guild: Guild): Tool {
       permissions: permissionSchema,
     }),
     execute: async ({ name, color, mentionable, permissions }): Promise<ToolResult> => {
-      const roleColor = color ? parseInt(color, 16) : parseInt('5865F2', 16);
+      try {
+        const roleColor = color ? parseInt(color, 16) : parseInt('5865F2', 16);
 
-      const rolePermissions: bigint[] = permissionsToFlags(permissions ?? undefined);
+        const rolePermissions: bigint[] = permissionsToFlags(permissions ?? undefined);
 
-      const role = await guild.roles.create({
-        name,
-        color: roleColor,
-        mentionable,
-        permissions: rolePermissions,
-      });
+        const role = await guild.roles.create({
+          name,
+          color: roleColor,
+          mentionable,
+          permissions: rolePermissions,
+        });
 
-      const permCount = permissions?.administrator
-        ? 'Administrator (all permissions)'
-        : `${rolePermissions.length} permissions`;
+        const permCount = permissions?.administrator
+          ? 'Administrator (all permissions)'
+          : `${rolePermissions.length} permissions`;
 
-      return { summary: `Created role: ${role.name} with ${permCount}`, data: { id: role.id } };
+        return { summary: `Created role: ${role.name} with ${permCount}`, data: { id: role.id } };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to create role: ${message}` };
+      }
     },
   });
 }

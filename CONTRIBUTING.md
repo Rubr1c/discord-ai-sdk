@@ -1,76 +1,102 @@
-# Contributing to Discord AI SDK
+# Contributing to discord-ai-sdk
 
-Thank you for your interest in contributing! This guide explains how to propose changes and collaborate effectively.
+Thanks for contributing! This project is a TypeScript SDK that bridges [Vercel AI SDK](https://sdk.vercel.ai) with [discord.js v14](https://discord.js.org/). Please follow the guidelines below to keep things clean and consistent.
 
-## Code of Conduct
+---
 
-By participating, you agree to uphold our Code of Conduct. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+## Getting started
 
-## Before You Start
+- Default branch: `master`
+- Package manager: [pnpm](https://pnpm.io)
+- Build: [tsup](https://tsup.egoist.dev/)
+- Tests: [Vitest](https://vitest.dev/)
+- Docs: [TypeDoc](https://typedoc.org/)
 
-- For new features or behavior changes, please open an Issue or Discussion first to align on scope and design.
-- For bug reports, include reproduction steps, expected vs actual behavior, and environment info (OS, Node, package versions).
-- Security issues: do not open a public issue. Please report privately (see SECURITY.md).
+Install dependencies:
 
-## Development Setup
-
-Requirements: Node 18.17+ or 20+, pnpm.
-
-```bash
-# clone your fork
-git clone https://github.com/<you>/discord-ai-sdk.git
-cd discord-ai-sdk
-
-# install dependencies
+```sh
 pnpm install
+````
 
-# typecheck / lint / test / build
-pnpm run typecheck
-pnpm run lint
-pnpm run test      # watch
-pnpm run test:run  # CI mode
-pnpm run build
+Useful scripts:
+
+```sh
+pnpm lint        # check lint
+pnpm lint:fix    # auto-fix lint issues
+pnpm format      # format with Prettier
+pnpm typecheck   # run TypeScript type check
+pnpm build       # build with tsup
+pnpm test        # run tests
 ```
 
-## Project Conventions
+---
 
-- Package manager: pnpm
-- Language: TypeScript (strict). Do not use `any`; prefer `unknown` + narrowing.
-- Linting: ESLint v9 flat config; follow existing rules.
-- Formatting: Prettier (run `pnpm run format`).
-- Paths: use `@/` alias for imports from `src` when possible.
-- Commits: Prefer Conventional Commits (e.g., `feat: ...`, `fix: ...`, `docs: ...`).
+## Branching & Pull Requests
+
+* Open an issue for significant changes before starting work.
+* Branch naming:
+
+  * `feat/<short-description>`
+  * `fix/<short-description>`
+  * `docs/<short-description>`
+  * `chore/<short-description>`
+* Keep PRs focused and small. Link issues in the PR description.
+
+---
+
+## Coding style
+
+* ESLint + Prettier enforce style — run them before committing.
+* Use **named exports only**. Avoid default exports.
+* No top-level side effects; keep modules pure.
+* Public APIs must be explicit and stable. Avoid exposing internals.
+* Handle errors with typed Errors and actionable messages.
+* Respect Discord API limits: defer if >2s, backoff on 429s, check permissions.
+
+---
+
+## TypeScript
+
+* Strong typing is required. No `any`.
+* Public APIs: explicit input and return types.
+* Use `interface` for public contracts, `type` for unions/utilities.
+* Prefer immutable patterns (`readonly`, avoid mutation).
+* Add JSDoc for all public exports.
+
+---
 
 ## Tests
 
-- Runner: Vitest
-- Location: `tests/` (unit under `tests/unit/**`, integration under `tests/integration/**`).
-- Add/adjust tests for changed logic. Docs-only or config-only PRs can skip tests.
-- Keep tests fast and focused; use typed fakes/mocks (see `tests/utils/*`).
+* Use Vitest. Place tests under `tests/`, mirroring `src/`.
+* No real Discord/network calls — always mock.
+* Test edge cases (rate limits, permission errors, invalid inputs).
+* Run tests locally before PRs.
+
+---
 
 ## Documentation
 
-- Update README or inline TSDoc for new public APIs.
-- If you change developer workflows or environment variables, update README accordingly.
+* Add/update JSDoc for all public APIs.
+* Update `README.md`, `docs/`, and `examples/` if you add or change public APIs.
 
-## Pull Request Guidelines
+---
 
-- Keep PRs focused and reasonably small.
-- Include a clear description and reference related issues (e.g., `Fixes #123`).
-- Ensure these pass locally before submitting:
-  - `pnpm run typecheck`
-  - `pnpm run lint`
-  - `pnpm run test:run`
-  - `pnpm run build`
-- If adding features or changing behavior, add/adjust tests and docs.
+## Commits
 
-### PR Checklist
+* Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-- [ ] Issue/Discussion exists for non-trivial changes
-- [ ] Typecheck, lint, tests, build pass
-- [ ] Tests added/updated (if applicable)
-- [ ] README/docs updated (if applicable)
+  * `feat(auth): add token refresh helper`
+  * `fix(client): handle 429 retry-after`
+  * `docs(readme): update usage example`
 
-## License
+---
 
-By contributing, you agree that your contributions are licensed under the project’s MIT License (see [LICENSE](LICENSE)).
+## PR checklist
+
+* [ ] Lint + Prettier pass
+* [ ] Type-check passes
+* [ ] Tests added/updated and passing
+* [ ] Build succeeds
+* [ ] Docs/examples updated if API changed
+* [ ] PR description links issues and explains changes
+

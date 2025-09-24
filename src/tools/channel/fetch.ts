@@ -13,21 +13,26 @@ export function getChannelsTool(guild: Guild): Tool {
     description: 'fetch existing channels',
     inputSchema: z.object({}),
     execute: async (): Promise<ToolResult> => {
-      const channels = (await guild.channels.fetch()).filter(
-        (channel) => channel?.type == ChannelType.GuildText,
-      );
+      try {
+        const channels = (await guild.channels.fetch()).filter(
+          (channel) => channel?.type == ChannelType.GuildText,
+        );
 
-      const channelList = channels.map((channel) => ({
-        id: channel?.id,
-        name: channel?.name,
-        position: channel?.position,
-        parent: channel?.parent?.id ?? null,
-      }));
+        const channelList = channels.map((channel) => ({
+          id: channel?.id,
+          name: channel?.name,
+          position: channel?.position,
+          parent: channel?.parent?.id ?? null,
+        }));
 
-      return {
-        summary: `Found ${channelList.length} channels in this server`,
-        data: channelList,
-      };
+        return {
+          summary: `Found ${channelList.length} channels in this server`,
+          data: channelList,
+        };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return { summary: `Failed to fetch channels: ${message}` };
+      }
     },
   });
 }
