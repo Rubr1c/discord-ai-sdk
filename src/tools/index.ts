@@ -35,6 +35,10 @@ import { deleteMessageTool } from '@/tools/message/delete';
 import { manageChannelPermissionsTool } from '@/tools/channel/permission';
 import { getAuditLogsTool } from '@/tools/server/audit-logs';
 import { getBansTool } from '@/tools/server/bans';
+import { createThreadTool } from './thread/create';
+import { getThreadsTool } from './thread/fetch';
+import { deleteThreadTool } from './thread/delete';
+import { archiveThreadTool } from './thread/archive';
 
 /**
  * Creates a tool.
@@ -84,4 +88,8 @@ export const discordApiTools = {
   unpinMessage: createTool(unpinMessageTool, 'mid'),
   getAuditLogs: createTool(getAuditLogsTool, 'low'),
   getBans: createTool(getBansTool, 'low'),
+  createThread: createTool(createThreadTool, 'mid'),
+  deleteThread: createTool(deleteThreadTool, 'high'),
+  archiveThread: createTool(archiveThreadTool, 'mid'),
+  getThreads: createTool(getThreadsTool, 'low'),
 };
