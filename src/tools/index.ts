@@ -34,6 +34,9 @@ import { unpinMessageTool } from '@/tools/message/unpin';
 import { deleteMessageTool } from '@/tools/message/delete';
 import { manageChannelPermissionsTool } from '@/tools/channel/permission';
 import { getAuditLogsTool } from '@/tools/server/audit-logs';
+import { getReactionsTool } from '@/tools/reaction/fetch';
+import { addReactionTool } from '@/tools/reaction/add';
+import { removeReactionTool } from '@/tools/reaction/remove';
 
 /**
  * Creates a tool.
@@ -82,4 +85,7 @@ export const discordApiTools = {
   pinMessage: createTool(pinMessageTool, 'low'),
   unpinMessage: createTool(unpinMessageTool, 'mid'),
   getAuditLogs: createTool(getAuditLogsTool, 'low'),
+  getReactions: createTool(getReactionsTool, 'low'),
+  addReaction: createTool(addReactionTool, 'mid'),
+  removeReaction: createTool(removeReactionTool, 'mid'),
 };
