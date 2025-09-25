@@ -8,7 +8,7 @@ Coordinates the AI model with prompts, tools, rate limits, and logging.
 - **Steps and retries**: `maxSteps` (default 5), `maxRetries` (default 2).
 - **Temperature/tokens**: `temperature` (default 0), `maxTokens` (default 400).
 - **Post-processing**: If model text is empty, summarizes tool runs into a user-friendly message.
-- **Defaults**: If not provided, it constructs `PromptBuilder`, `ToolRegistry` (with `discordApiTools`), and `RateLimiter` (3 requests/60s).
+- **Defaults**: If not provided, it constructs `PromptBuilder`, a `ToolRegistry` preloaded with a minimal default set of tools (channels, roles, and selected member/message tools), and `RateLimiter` (3 requests/60s).
 
 ```ts
 import { AIEngine, PromptBuilder, ToolRegistry, RateLimiter } from 'discord-ai-sdk';

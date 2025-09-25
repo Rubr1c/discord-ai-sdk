@@ -20,7 +20,7 @@ const registry = new ToolRegistry({
 });
 ```
 
-The `AIEngine` default also composes these groups when you do not supply a registry.
+The `AIEngine` default now registers a minimal set by default (channels, roles, and selected member/message tools) to reduce model distraction. Supply your own `ToolRegistry` if you need more.
 
 ## Tool shape: ToolFactory with object params
 

@@ -6,7 +6,7 @@ AIEngine constructor options (defaults shown):
 
 - `model`: Language model from `ai` (required)
 - `promptBuilder`: `new PromptBuilder({ system: '', override: false, logger })`
-- `toolRegistry`: `new ToolRegistry({ tools: discordApiTools, logger })`
+- `toolRegistry`: by default, an internal `ToolRegistry` is created with a minimal set of tools (channels, roles, `member.getMembers`, `member.getUserId`, `message.getMessages`, `message.sendMessage`).
 - `rateLimiter`: `new RateLimiter({ limitCount: 3, windowMs: 60000, logger })`
 - `logger?`: `Logger | CompositeLogger`
 - `maxRetries`: 2
@@ -17,7 +17,13 @@ AIEngine constructor options (defaults shown):
 Example:
 
 ```ts
-import { AIEngine, PromptBuilder, ToolRegistry, ConsoleLogger, discordApiTools } from 'discord-ai-sdk';
+import {
+  AIEngine,
+  PromptBuilder,
+  ToolRegistry,
+  ConsoleLogger,
+  discordApiTools,
+} from 'discord-ai-sdk';
 import { openai } from '@ai-sdk/openai';
 
 const logger = new ConsoleLogger({ level: 'info' });

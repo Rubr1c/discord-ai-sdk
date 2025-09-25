@@ -85,17 +85,14 @@ export class AIEngine {
     this.toolRegistry =
       options.toolRegistry ||
       new ToolRegistry({
-        // keep all for now
+        // Core Discord bot functionality: Essential tools only to reduce lost in the middle problems
         tools: {
           ...discordApiTools.channelTools,
-          ...discordApiTools.categoryTools,
           ...discordApiTools.roleTools,
-          ...discordApiTools.memberTools,
-          ...discordApiTools.messageTools,
-          ...discordApiTools.serverTools,
-          ...discordApiTools.reactionTools,
-          ...discordApiTools.threadTools,
-          ...discordApiTools.vcTools,
+          getMembers: discordApiTools.memberTools.getMembers,
+          getUserId: discordApiTools.memberTools.getUserId,
+          getMessages: discordApiTools.messageTools.getMessages,
+          sendMessage: discordApiTools.messageTools.sendMessage,
         },
         logger: this.logger,
       });

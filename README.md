@@ -99,7 +99,7 @@ LOG_LEVEL=info               # debug | info | warn | error (optional)
 
 ### Custom tools (optional)
 
-The built-in `discordApiTools` are grouped by domain so you can opt-in per group or mix with custom tools.
+By default, the engine registers a minimal tool set (channels, roles, and selected member/message tools) to keep the model focused. The built-in `discordApiTools` are grouped by domain so you can opt-in per group or mix with custom tools.
 
 ```ts
 import { ToolRegistry, discordApiTools } from 'discord-ai-sdk';
@@ -124,7 +124,8 @@ const toolRegistry = new ToolRegistry({
   tools: {
     // opt-in to built-in groups you need
     ...discordApiTools.channelTools,
-    ...discordApiTools.serverTools,
+    getMessages: discordApiTools.messageTools.getMessages,
+    sendMessage: discordApiTools.messageTools.sendMessage,
     // add your custom tools
     myCustomTool,
   },

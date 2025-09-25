@@ -4,6 +4,7 @@ import { getChannelsTool } from './fetch';
 import { deleteChannelTool } from './delete';
 import { renameChannelTool } from './rename';
 import { moveChannelTool } from './move';
+import { manageChannelPermissionsTool } from './permission';
 
 export const channelTools = {
   createChannel: createChannelTool,
@@ -11,4 +12,5 @@ export const channelTools = {
   deleteChannel: deleteChannelTool,
   renameChannel: renameChannelTool,
   moveChannel: moveChannelTool,
+  manageChannelPermissions: manageChannelPermissionsTool,
 } satisfies Record<string, ToolFactory>;

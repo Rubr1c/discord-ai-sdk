@@ -4,6 +4,7 @@ import { deleteRoleTool } from './delete';
 import { getRolesTool } from './fetch';
 import { removeRoleTool } from './remove';
 import { updateRoleTool } from './update';
+import { getRoleIdTool } from './id';
 import type { ToolFactory } from '@/tools/types';
 
 export const roleTools = {
@@ -13,4 +14,5 @@ export const roleTools = {
   updateRole: updateRoleTool,
   assignRole: assignRoleTool,
   removeRole: removeRoleTool,
+  getRoleId: getRoleIdTool,
 } satisfies Record<string, ToolFactory>;

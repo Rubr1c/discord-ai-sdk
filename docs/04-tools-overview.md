@@ -11,7 +11,7 @@
 
 The built-in `discordApiTools` are grouped by domain so you can opt-in to only what you need:
 
-- `channelTools`: create, fetch, delete, rename, move, permission overwrites
+- `channelTools`: create, fetch, delete, rename, move
 - `categoryTools`: create, fetch, delete
 - `roleTools`: create, fetch, update, assign/remove, delete, resolve role ID
 - `memberTools`: fetch, resolve user ID, kick, ban/unban, timeout/untimeout
@@ -29,8 +29,8 @@ import { ToolRegistry, discordApiTools } from 'discord-ai-sdk';
 const tools = new ToolRegistry({
   tools: {
     ...discordApiTools.channelTools,
-    ...discordApiTools.messageTools,
-    ...discordApiTools.reactionTools,
+    getMessages: discordApiTools.messageTools.getMessages,
+    sendMessage: discordApiTools.messageTools.sendMessage,
   },
 });
 ```
