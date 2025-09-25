@@ -10,17 +10,23 @@ import type { ToolResult } from '@/tools/types';
  */
 export function getChannelsTool(guild: Guild): Tool {
   return tool({
-    description: 'fetch existing channels',
-    inputSchema: z.object({}),
-    execute: async (): Promise<ToolResult> => {
+    description:
+      'fetch existing channels (all types by default, or filter by specific channel type)',
+    inputSchema: z.object({
+      type: z.enum(['voice', 'text']).optional().describe('type of channel to fetch'),
+    }),
+    execute: async ({ type }): Promise<ToolResult> => {
       try {
-        const channels = (await guild.channels.fetch()).filter(
-          (channel) => channel?.type == ChannelType.GuildText,
+        const channels = (await guild.channels.fetch()).filter((channel) =>
+          type
+            ? channel?.type === (type === 'voice' ? ChannelType.GuildVoice : ChannelType.GuildText)
+            : true,
         );
 
         const channelList = channels.map((channel) => ({
           id: channel?.id,
           name: channel?.name,
+          type: channel?.type,
           position: channel?.position,
           parent: channel?.parent?.id ?? null,
         }));

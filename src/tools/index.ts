@@ -34,6 +34,10 @@ import { unpinMessageTool } from '@/tools/message/unpin';
 import { deleteMessageTool } from '@/tools/message/delete';
 import { manageChannelPermissionsTool } from '@/tools/channel/permission';
 import { getAuditLogsTool } from '@/tools/server/audit-logs';
+import { deafenMemberTool } from './vc/deafen';
+import { disconnectMemberTool } from './vc/disconnect';
+import { moveMemberTool } from './vc/move';
+import { muteMemberTool } from './vc/mute';
 
 /**
  * Creates a tool.
@@ -82,4 +86,8 @@ export const discordApiTools = {
   pinMessage: createTool(pinMessageTool, 'low'),
   unpinMessage: createTool(unpinMessageTool, 'mid'),
   getAuditLogs: createTool(getAuditLogsTool, 'low'),
+  moveMember: createTool(moveMemberTool, 'mid'),
+  muteMember: createTool(muteMemberTool, 'mid'),
+  deafenMember: createTool(deafenMemberTool, 'mid'),
+  disconnectMember: createTool(disconnectMemberTool, 'mid'),
 };
