@@ -16,5 +16,5 @@ export type { DiscordRouterProps } from '@/core/discord-router';
 
 export type { RateLimitOpts, RateLimitFn } from '@/core/rate-limiter';
 
-export { discordApiTools, createTool } from '@/tools';
+export { discordApiTools } from '@/tools';
 export type { ToolResult, ToolFactory, ToolFactoryProps } from '@/tools/types';

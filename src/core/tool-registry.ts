@@ -22,9 +22,6 @@ export interface ToolRegistryProps<
   safetyModeCap?: ((guild: Guild) => Promise<Safety>) | Safety;
 }
 
-/**
- * Tool registry.
- */
 export class ToolRegistry<
   TInitialTools extends Record<string, ToolFactory> = Record<string, ToolFactory>,
 > {

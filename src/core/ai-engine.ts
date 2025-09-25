@@ -69,8 +69,8 @@ export class AIEngine {
   private promptBuilder: PromptBuilder;
   private toolRegistry: ToolRegistry;
   private rateLimiter: RateLimiter;
-  public logger: Logger | CompositeLogger;
   private config: AIEngineConfig;
+  public logger: Logger | CompositeLogger;
 
   /**
    * Creates an AI engine that orchestrates model calls and Discord tools.
@@ -228,6 +228,7 @@ export class AIEngine {
     return 'Tool executed successfully';
   }
 
+  /** @deprecated Use `logger` property instead. */
   public getLogger(): Logger {
     return this.logger;
   }
@@ -252,6 +253,7 @@ export class AIEngine {
     return this.config;
   }
 
+  /** @deprecated Use `logger` property instead. */
   public setLogger(logger: Logger) {
     this.logger = logger;
   }

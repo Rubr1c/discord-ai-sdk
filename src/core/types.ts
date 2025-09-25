@@ -1,8 +1,5 @@
 import type { Guild, GuildMember, APIInteractionGuildMember, GuildBasedChannel } from 'discord.js';
 
-/**
- * Request context.
- */
 export interface RequestContext {
   guild: Guild;
   channel: GuildBasedChannel;
@@ -32,8 +29,10 @@ export interface LoggerParams {
 }
 
 export interface Logger {
+  /** Minimum log level. */
   level: LogLevel;
 
+  /** Checks if a log level should be logged. */
   shouldLog(level: LogLevel): boolean;
 
   debug(params: LoggerParams): void;
