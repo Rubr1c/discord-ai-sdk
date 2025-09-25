@@ -39,6 +39,10 @@ import { createThreadTool } from './thread/create';
 import { getThreadsTool } from './thread/fetch';
 import { deleteThreadTool } from './thread/delete';
 import { archiveThreadTool } from './thread/archive';
+import { deafenMemberTool } from './vc/deafen';
+import { disconnectMemberTool } from './vc/disconnect';
+import { moveMemberTool } from './vc/move';
+import { muteMemberTool } from './vc/mute';
 
 /**
  * Creates a tool.
@@ -92,4 +96,8 @@ export const discordApiTools = {
   deleteThread: createTool(deleteThreadTool, 'high'),
   archiveThread: createTool(archiveThreadTool, 'mid'),
   getThreads: createTool(getThreadsTool, 'low'),
+  moveMember: createTool(moveMemberTool, 'mid'),
+  muteMember: createTool(muteMemberTool, 'mid'),
+  deafenMember: createTool(deafenMemberTool, 'mid'),
+  disconnectMember: createTool(disconnectMemberTool, 'mid'),
 };
