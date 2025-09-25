@@ -113,7 +113,9 @@ function myCustomTool(guild: Guild): Tool {
 
 const toolRegistry = new ToolRegistry({
   tools: {
-    ...discordApiTools,
+    // add the tools you want from the orginal tools
+    ...discordApiTools.channelTools,
+    ...discordApiTools.serverTools,
     myTool: createTool(myCustomTool, 'low'), // safety: 'low' | 'mid' | 'high'
   },
 });

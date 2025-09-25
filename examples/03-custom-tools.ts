@@ -20,28 +20,35 @@ const client = new Client({
 
 const toolRegistry = new ToolRegistry({
   tools: {
-    ...discordApiTools, // to keep the default tools when passing to engine
-    myTool: createTool(
-      // guild is passed in from the engine
-      (guild) =>
+    // add the tools you want from the orginal tools
+    ...discordApiTools.channelTools,
+    ...discordApiTools.serverTools,
+    myTool: createTool({
+      // guild and logger is passed in from the engine
+      tool: ({ guild, logger }) =>
         tool({
           description: 'my tool',
           inputSchema: z.object({
             name: z.string(),
           }),
-          execute: async ({ name }) => {
+          execute: async ({ name }: { name: string }) => {
+            // using logger
+            logger?.info({
+              message: 'myTool called',
+              meta: { name },
+            });
             return { summary: `[${guild.name}] Hello ${name}` };
           },
         }),
-      'low',
-    ), // safety: 'low' | 'mid' | 'high'
+      safetyLevel: 'low', // safety: 'low' | 'mid' | 'high'
+    }),
   },
 });
 
 toolRegistry.addTool(
   'myTool2',
-  createTool(
-    (guild) =>
+  createTool({
+    tool: ({ guild }) =>
       tool({
         description: 'my tool',
         inputSchema: z.object({
@@ -51,8 +58,8 @@ toolRegistry.addTool(
           return { summary: `[${guild.name}] Hello ${name}` };
         },
       }),
-    'low',
-  ),
+    safetyLevel: 'low',
+  }),
   true, // overwrite the tool if it already exists
 );
 

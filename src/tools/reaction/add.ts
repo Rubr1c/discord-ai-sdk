@@ -15,7 +15,9 @@ export const addReactionTool: ToolFactory = {
         messageId: z.string().describe('id of message'),
         emoji: z
           .string()
-          .describe('emoji to react with (from fetching or default discord emojis) format [:{id or name}:]')
+          .describe(
+            'emoji to react with (from fetching or default discord emojis) format [:{id or name}:]',
+          )
           .regex(/^:(\d{17,20}):$/),
       }),
       execute: async ({ channelId, messageId, emoji }): Promise<ToolResult> => {

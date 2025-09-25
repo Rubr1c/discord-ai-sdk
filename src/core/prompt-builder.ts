@@ -61,7 +61,11 @@ export class PromptBuilder {
    * @example
    * const promptBuilder = new PromptBuilder('You are a helpful assistant.', true, new ConsoleLogger());
    */
-  constructor({ system = '', override = false, logger = new ConsoleLogger() }: PromptBuilderProps = {}) {
+  constructor({
+    system = '',
+    override = false,
+    logger = new ConsoleLogger(),
+  }: PromptBuilderProps = {}) {
     this.systemPrompt = override ? system : this.baseSystemPrompt + system;
     this.logger = logger;
   }

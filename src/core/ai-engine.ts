@@ -85,7 +85,18 @@ export class AIEngine {
     this.toolRegistry =
       options.toolRegistry ||
       new ToolRegistry({
-        tools: discordApiTools,
+        // keep all for now
+        tools: {
+          ...discordApiTools.channelTools,
+          ...discordApiTools.categoryTools,
+          ...discordApiTools.roleTools,
+          ...discordApiTools.memberTools,
+          ...discordApiTools.messageTools,
+          ...discordApiTools.serverTools,
+          ...discordApiTools.reactionTools,
+          ...discordApiTools.threadTools,
+          ...discordApiTools.vcTools,
+        },
         logger: this.logger,
       });
     this.rateLimiter =

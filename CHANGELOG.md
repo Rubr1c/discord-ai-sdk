@@ -13,4 +13,3 @@ All notable changes to this project will be documented in this file.
   - Message tools: get, pin
   - Role tools: assign, create, id, remove
   - Server tools: audit-logs, emojis, stickers
-

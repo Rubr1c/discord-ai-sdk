@@ -17,7 +17,7 @@ export interface ToolResult<T = unknown> {
  */
 export interface ToolFactoryProps {
   guild: Guild;
-  
+
   /**
    * The logger to be used in the tool.
    */
