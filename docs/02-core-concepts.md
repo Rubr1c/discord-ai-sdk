@@ -49,14 +49,21 @@ const router = new DiscordRouter({
 
 Holds the available tools and filters by a safety cap.
 
-- **Registration**: Add/remove tools; provide `discordApiTools` or custom.
+- **Registration**: Add/remove tools; provide flattened groups from `discordApiTools` or custom.
 - **Safety caps**: `low` < `mid` < `high`. Cap can be a string or `async (guild) => Safety`.
 - **Filtering**: `getAllAvailableTools(ctx)` returns only tools at or below the cap.
 
 ```ts
 import { ToolRegistry, discordApiTools } from 'discord-ai-sdk';
 
-const reg = new ToolRegistry({ tools: discordApiTools });
+const reg = new ToolRegistry({
+  tools: {
+    // opt-in to groups you want the model to use
+    ...discordApiTools.channelTools,
+    ...discordApiTools.messageTools,
+    ...discordApiTools.memberTools,
+  },
+});
 reg.setSafetyModeCap('mid');
 ```
 
@@ -88,9 +95,16 @@ const rl = new RateLimiter({ limitCount: 3, windowMs: 60_000 });
 
 ## Logger
 
-`ConsoleLogger` implements a simple leveled logger; respects `LOG_LEVEL` env. You can provide any object implementing the `Logger` interface.
+`ConsoleLogger`/`AuditLogger`/`CompositeLogger` implement leveled logging; they respect `LOG_LEVEL` env. You can provide any object implementing the `Logger` interface.
 
 ```ts
-import { ConsoleLogger } from 'discord-ai-sdk';
-const logger = new ConsoleLogger('debug');
+import { ConsoleLogger, CompositeLogger, AuditLogger } from 'discord-ai-sdk';
+
+const logger = new ConsoleLogger({ level: 'debug' });
+
+// Example: fan-out to multiple loggers
+const composite = new CompositeLogger([
+  new ConsoleLogger({ level: 'debug' }),
+  new AuditLogger({ level: 'info', auditLogFn: async (g) => ({ channelId: '123' }) }),
+]);
 ```
