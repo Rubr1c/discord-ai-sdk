@@ -43,6 +43,9 @@ import { deafenMemberTool } from './vc/deafen';
 import { disconnectMemberTool } from './vc/disconnect';
 import { moveMemberTool } from './vc/move';
 import { muteMemberTool } from './vc/mute';
+import { getReactionsTool } from '@/tools/reaction/fetch';
+import { addReactionTool } from '@/tools/reaction/add';
+import { removeReactionTool } from '@/tools/reaction/remove';
 
 /**
  * Creates a tool.
@@ -100,4 +103,7 @@ export const discordApiTools = {
   muteMember: createTool(muteMemberTool, 'mid'),
   deafenMember: createTool(deafenMemberTool, 'mid'),
   disconnectMember: createTool(disconnectMemberTool, 'mid'),
+  getReactions: createTool(getReactionsTool, 'low'),
+  addReaction: createTool(addReactionTool, 'mid'),
+  removeReaction: createTool(removeReactionTool, 'mid'),
 };
