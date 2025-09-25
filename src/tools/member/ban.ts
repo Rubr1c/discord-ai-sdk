@@ -9,7 +9,7 @@ import type { ToolFactory, ToolResult } from '@/tools/types';
 export const banMemberTool: ToolFactory = {
   tool: ({ guild, logger }) =>
     tool({
-      description: 'ban a member from the server',
+      description: 'ban or unban a member from the server',
       inputSchema: z.object({
         userId: z
           .string()
@@ -20,29 +20,34 @@ export const banMemberTool: ToolFactory = {
           .trim()
           .max(512, 'Reason must be <= 512 characters')
           .nullish()
-          .describe('reason for ban'),
+          .describe('reason for ban or unban'),
+        action: z.enum(['ban', 'unban']).describe('action to perform'),
       }),
-      execute: async ({ userId, reason }): Promise<ToolResult> => {
+      execute: async ({ userId, reason, action }): Promise<ToolResult> => {
         const normalizedReason = (reason ?? '').trim() || 'No reason provided';
         logger?.info({
           message: 'banMemberTool called',
-          meta: { userId, reason },
+          meta: { userId, reason, action },
         });
 
         try {
-          await guild.members.ban(userId, { reason: normalizedReason });
+          if (action === 'ban') {
+            await guild.members.ban(userId, { reason: normalizedReason });
+          } else {
+            await guild.members.unban(userId);
+          }
 
           logger?.info({
             message: 'banMemberTool completed',
-            meta: { userId, reason },
+            meta: { userId, reason, action },
           });
 
-          return { summary: `Banned user ${userId} (${normalizedReason})` };
+          return { summary: `${action}ed user ${userId} (${normalizedReason})` };
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           logger?.error({
             message: 'banMemberTool failed',
-            meta: { userId, reason },
+            meta: { userId, reason, action },
             error: err instanceof Error ? err : new Error(message),
           });
           return { summary: `Failed to ban ${userId}: ${message}` };
