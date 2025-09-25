@@ -39,7 +39,7 @@ export const getUserIdTool: ToolFactory = {
           if (memberFromCache) {
             logger?.info({
               message: 'getUserIdTool completed',
-              meta: { memberFromCache },
+              meta: { id: memberFromCache.id },
             });
 
             return {

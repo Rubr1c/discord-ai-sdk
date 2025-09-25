@@ -54,7 +54,7 @@ export const getMessagesTool: ToolFactory = {
 
           logger?.info({
             message: 'getMessagesTool completed',
-            meta: { messageList },
+            meta: { messageCount: messageList.length },
           });
 
           return {
