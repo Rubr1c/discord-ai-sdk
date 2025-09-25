@@ -139,7 +139,7 @@ export class AIEngine {
         system: prompts.system,
         tools: Object.fromEntries(
           Object.entries(await this.toolRegistry.getAllAvailableTools(ctx)).map(
-            ([name, aiTool]) => [name, aiTool.tool(ctx.guild)],
+            ([name, aiTool]) => [name, aiTool.tool({ guild: ctx.guild, logger: this.logger })],
           ),
         ),
         maxRetries: this.config.maxRetries,

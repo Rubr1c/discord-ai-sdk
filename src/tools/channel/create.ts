@@ -1,16 +1,16 @@
-import { tool, type Tool } from 'ai';
-import { ChannelType, type Guild } from 'discord.js';
+import { tool } from 'ai';
+import { ChannelType } from 'discord.js';
 import z from 'zod';
-import type { ToolResult } from '@/tools/types';
+import type { ToolFactory, ToolResult } from '@/tools/types';
 import { permissionOverwriteSchema, permissionsToFlags } from '@/tools/shared/role-permissions';
 
 /**
- * Creates a tool to create a channel.
- * @param guild - The guild.
- * @returns The tool binded to the guild.
+ * Creates a tool factory for creating a channel.
+ * @returns The tool factory.
  */
-export function createChannelTool(guild: Guild): Tool {
-  return tool({
+export const createChannelTool: ToolFactory = {
+  tool: ({ guild, logger }) =>
+    tool({
     description:
       'Create a Discord text channel, optionally in a specific category. Use getCategories first if you need to find a category by name. Use getRoleId first if you need to set permissions for a specific role.',
     inputSchema: z.object({
@@ -29,6 +29,11 @@ export function createChannelTool(guild: Guild): Tool {
       permissionOverwrites: permissionOverwriteSchema,
     }),
     execute: async ({ channelName, category, permissionOverwrites }): Promise<ToolResult> => {
+      logger?.info({
+        message: 'createChannelTool called',
+        meta: { channelName, category, permissionOverwrites },
+      });
+
       try {
         const cleanName = channelName
           .toLowerCase()
@@ -65,14 +70,25 @@ export function createChannelTool(guild: Guild): Tool {
           permissionOverwrites: overwrites ?? [],
         });
 
+        logger?.info({
+          message: 'createChannelTool completed',
+          meta: { channel },
+        });
+
         return {
           summary: `Successfully created channel: #${channel.name} (ID: ${channel.id})${category ? ` in category ${category}` : ''}`,
           data: { id: channel.id, name: channel.name, categoryId: category ?? null },
         };
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        logger?.error({
+          message: 'createChannelTool failed',
+          meta: { channelName, category, permissionOverwrites },
+          error: error instanceof Error ? error : new Error(errorMsg),
+        });
         return { summary: `Failed to create channel: ${errorMsg}` };
       }
     },
-  });
+  }),
+  safetyLevel: 'mid',
 }

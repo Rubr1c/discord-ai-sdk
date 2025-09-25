@@ -1,4 +1,3 @@
-import type { Tool } from 'ai';
 import type { Guild, GuildMember, APIInteractionGuildMember, GuildBasedChannel } from 'discord.js';
 
 /**
@@ -22,11 +21,6 @@ export const SAFETY = {
 } as const;
 
 export type Safety = keyof typeof SAFETY;
-
-export interface AITool {
-  tool: (guild: Guild) => Tool;
-  safetyLevel: Safety;
-}
 
 export type BotMode = 'slash' | 'message';
 

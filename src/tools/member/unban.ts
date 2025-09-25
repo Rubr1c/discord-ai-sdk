@@ -1,15 +1,14 @@
-import { tool, type Tool } from 'ai';
-import { type Guild } from 'discord.js';
+import { tool } from 'ai';
 import z from 'zod';
-import type { ToolResult } from '@/tools/types';
+import type { ToolFactory, ToolResult } from '@/tools/types';
 
 /**
- * Creates a tool to unban a member.
- * @param guild - The guild.
- * @returns The tool binded to the guild.
+ * Creates a tool factory for unbanning a member.
+ * @returns The tool factory.
  */
-export function unbanMemberTool(guild: Guild): Tool {
-  return tool({
+export const unbanMemberTool: ToolFactory = {
+  tool: ({ guild, logger }) =>
+    tool({
     description: 'unban a member from the server',
     inputSchema: z.object({
       userId: z.string().describe('id of target user'),
@@ -17,13 +16,29 @@ export function unbanMemberTool(guild: Guild): Tool {
     }),
     execute: async ({ userId, reason }): Promise<ToolResult> => {
       try {
+        logger?.info({
+          message: 'unbanMemberTool called',
+          meta: { userId, reason },
+        });
+
         await guild.members.unban(userId, reason || 'No Reason Provided');
+
+        logger?.info({
+          message: 'unbanMemberTool completed',
+          meta: { userId, reason },
+        });
 
         return { summary: `Unbanned user ${userId}` };
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'unknown error';
+        const message = err instanceof Error ? err.message : String(err);
+        logger?.error({
+          message: 'unbanMemberTool failed',
+          meta: { userId, reason },
+          error: err instanceof Error ? err : new Error(message),
+        });
         return { summary: `Failed to unban ${userId}: ${message}` };
       }
     },
-  });
+  }),
+  safetyLevel: 'high',
 }

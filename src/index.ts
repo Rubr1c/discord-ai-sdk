@@ -9,7 +9,7 @@ export { CompositeLogger } from '@/core/utils/logger/composite-logger';
 export type { ToolRegistryProps } from '@/core/tool-registry';
 export { AIError, ErrorReason } from '@/core/error';
 
-export type { AITool, RequestContext, Safety, BotMode, Logger } from '@/core/types';
+export type { RequestContext, Safety, BotMode, Logger } from '@/core/types';
 export { SAFETY } from '@/core/types';
 
 export type { DiscordRouterProps } from '@/core/discord-router';

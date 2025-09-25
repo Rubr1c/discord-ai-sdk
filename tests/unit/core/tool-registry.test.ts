@@ -3,7 +3,8 @@ import { ToolRegistry } from '@/core/tool-registry';
 import { createFakeGuild, createFakeTextChannel } from 'tests/utils/discord';
 import { makeContext } from 'tests/utils/context';
 import { discordApiTools } from '@/tools/index';
-import { SAFETY, type AITool } from '@/core/types';
+import { SAFETY } from '@/core/types';
+import type { ToolFactory } from '@/tools/types';
 
 describe('ToolRegistry', () => {
   it('all tools returning when saftey is high', async () => {
@@ -26,7 +27,7 @@ describe('ToolRegistry', () => {
     const tools = await reg.getAllAvailableTools(ctx);
 
     const currentSafetyLevel = SAFETY['mid'];
-    const targetTools: Record<string, AITool> = {};
+    const targetTools: Record<string, ToolFactory> = {};
 
     for (const [toolName, tool] of Object.entries(discordApiTools)) {
       const toolSafetyLevel = SAFETY[tool.safetyLevel];
@@ -48,7 +49,7 @@ describe('ToolRegistry', () => {
     const tools = await reg.getAllAvailableTools(ctx);
 
     const currentSafetyLevel = SAFETY['low'];
-    const targetTools: Record<string, AITool> = {};
+    const targetTools: Record<string, ToolFactory> = {};
 
     for (const [toolName, tool] of Object.entries(discordApiTools)) {
       const toolSafetyLevel = SAFETY[tool.safetyLevel];
